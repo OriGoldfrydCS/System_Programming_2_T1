@@ -99,6 +99,13 @@ namespace ariel {
              * @return true if a negative weight cycle is detected, false otherwise.
              */
             static bool detectNegativeCycle(const Graph& g);
+
+
+            static bool relaxEdges(const vector<vector<int>>& adj, vector<int>& dist, std::size_t numVertices);
+
+            static bool checkForNegativeCycle(const vector<vector<int>>& adj, const vector<int>& dist, std::size_t numVertices);
+
+
     };
 }
 

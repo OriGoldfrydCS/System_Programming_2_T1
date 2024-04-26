@@ -12,23 +12,26 @@ namespace ariel {
      * Initializes a new graph with 0 vertices and edges, and is not directed.
      * 
      */
-    Graph::Graph() {
-            this->numVertices = 0;
-            this->numEdges = 0;
-            this->isDirected = false;
-    }
+
+    
+    Graph::Graph() : numVertices(0), numEdges(0), isDirected(false) {}          // Same as  Graph::Graph() {
+                                                                                //                this->numVertices = 0;
+                                                                                //                this->numEdges = 0;
+                                                                                //                this->isDirected = false;
+                                                                                //          }
+                                                                                            
     
     /**
      * 
      * This function loads a graph from a given adjacency matrix.
      * @param matrix A square matrix representing the adjacency of vertices, where matrix[i][j] represents
-     *               the weight of the edge from vertex i to vertex j.
+     * the weight of the edge from vertex i to vertex j.
      * @throws invalid_argument if the matrix is not square.
      * 
      */
     void Graph::loadGraph(const vector<vector<int>>& matrix) {
         // Check if the matrix is square
-        int rows = matrix.size();
+        vector<vector<int>>::size_type rows = matrix.size();
         for (const auto& row : matrix) {
             if (row.size() != rows) {
                 throw invalid_argument("Invalid graph: The graph is not a square matrix.");
@@ -36,7 +39,7 @@ namespace ariel {
         }
         
         adjacencyMatrix = matrix;
-        numVertices = rows;
+        numVertices = static_cast<int>(rows); 
         
         // Count the number of edges
         numEdges = 0;

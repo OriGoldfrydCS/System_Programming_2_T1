@@ -76,24 +76,24 @@ namespace ariel {
 
         // Relax edges repeatedly n-1 times according to BF algorithm
         for (size_t i = 0; i < numVertices - 1; ++i) {
-            for (size_t u = 0; u < numVertices; ++u) {
-                for (size_t v = 0; v < numVertices; ++v) {
-                    int weight = graph.getAdjacencyMatrix()[u][v];
-                    if (weight != 0 && distances[u] != numeric_limits<int>::max() &&
-                        distances[u] + weight < distances[v]) {
-                        distances[v] = distances[u] + weight;
-                        predecessors[v] = static_cast<int>(u);
+            for (size_t vertex_u = 0; vertex_u < numVertices; ++vertex_u) {
+                for (size_t vertex_v = 0; vertex_v < numVertices; ++vertex_v) {
+                    int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
+                    if (weight != 0 && distances[vertex_u] != numeric_limits<int>::max() &&
+                        distances[vertex_u] + weight < distances[vertex_v]) {
+                        distances[vertex_v] = distances[vertex_u] + weight;
+                        predecessors[vertex_v] = static_cast<int>(vertex_u);
                     }
                 }
             }
         }
 
         // Check for negative weight cycles
-        for (size_t u = 0; u < numVertices; ++u) {
-            for (size_t v = 0; v < numVertices; ++v) {
-                int weight = graph.getAdjacencyMatrix()[u][v];
-                if (weight != 0 && distances[u] != numeric_limits<int>::max() && 
-                    distances[u] + weight < distances[v]) {
+        for (size_t vertex_u = 0; vertex_u < numVertices; ++vertex_u) {
+            for (size_t vertex_v = 0; vertex_v < numVertices; ++vertex_v) {
+                int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
+                if (weight != 0 && distances[vertex_u] != numeric_limits<int>::max() && 
+                    distances[vertex_u] + weight < distances[vertex_v]) {
                     cout << "Graph contains a negative weight cycle" << endl;
                     return "Graph contains a negative weight cycle";
                 }
@@ -113,7 +113,9 @@ namespace ariel {
 
         stringstream pathStream;
         for (size_t i = 0; i < path.size(); i++) {
-            if (i > 0) pathStream << "->";
+            if (i > 0){
+                pathStream << "->";
+            } 
             pathStream << path[i];
         }
 
@@ -130,65 +132,67 @@ namespace ariel {
      * @note see also the auxiliary functions hasCycle, dfs_cycle and printCycle in the private section below.
      * 
      */
-    bool Algorithms::isContainsCycle(const Graph& g) {
-        if (hasCycle(g)) {
-        cout << "1" << endl;
-        return true;
-        } else {
-            cout << "0" << endl;
-            return false;
-        }
+    bool Algorithms::isContainsCycle(const Graph& graph) {
+        if (hasCycle(graph)) {
+            cout << "1" << endl;
+            return true;
+        } 
+        
+        cout << "0" << endl;
+        return false;
     }
 
     
 
      /**
      * 
-     * Determines if the graph is bipartite.
+     * This function finds if the graph is bipartite.
      * 
      * @param graph The graph.
      * @return A string representing the bipartite sets or "0" if not bipartite.
      * @note see also the auxiliary function bfs_bipartite in the private section below.
      * 
      */
-    string Algorithms::isBipartite(const Graph& g) {
-        const auto& adj = g.getAdjacencyMatrix();
-        vector<int> color(static_cast<size_t>(g.getNumVertices()), -1);
+    string Algorithms::isBipartite(const Graph& graph) {
+        const auto& adj = graph.getAdjacencyMatrix();
+        vector<int> color(static_cast<size_t>(graph.getNumVertices()), -1);
 
-        for (int v = 0; v < g.getNumVertices(); ++v) {
-            if (color[static_cast<size_t>(v)] == -1) {
-                if (!bfs_bipartite(g, v, color)) {
+        for (int vertex_v = 0; vertex_v < graph.getNumVertices(); ++vertex_v) {
+            if (color[static_cast<size_t>(vertex_v)] == -1) {
+                if (!bfs_bipartite(graph, vertex_v, color)) {
                     return "0";
                 }
             }
         }
 
-        vector<int> setA, setB;
-        for (int v = 0; v < g.getNumVertices(); ++v) {
-            if (color[static_cast<size_t>(v)] == 0) {
-                setA.push_back(v);
+        vector<int> setA;
+        vector<int> setB;
+
+        for (int vertex_v = 0; vertex_v < graph.getNumVertices(); ++vertex_v) {
+            if (color[static_cast<size_t>(vertex_v)] == 0) {
+                setA.push_back(vertex_v);
             } else {
-                setB.push_back(v);
+                setB.push_back(vertex_v);
             }
         }
 
-        stringstream ss;
-        ss << "The graph is bipartite: A={";
+        stringstream result;
+        result << "The graph is bipartite: A={";
         for (size_t i = 0; i < setA.size(); ++i) {
-            ss << setA[i];
+            result << setA[i];
             if (i < setA.size() - 1) {
-                ss << ", ";
+                result << ", ";
             }
         }
-        ss << "}, B={";
+        result << "}, B={";
         for (size_t i = 0; i < setB.size(); ++i) {
-            ss << setB[i];
+            result << setB[i];
             if (i < setB.size() - 1) {
-                ss << ", ";
+                result << ", ";
             }
         }
-        ss << "}";
-        return ss.str();
+        result << "}";
+        return result.str();
     }
 
     
@@ -201,8 +205,8 @@ namespace ariel {
      * @note see also the auxiliary function detectNegativeCycle in the private section below.
      * 
      */
-    bool Algorithms::negativeCycle(const Graph& g) {
-        return detectNegativeCycle(g);
+    bool Algorithms::negativeCycle(const Graph& graph) {
+        return detectNegativeCycle(graph);
     }
 
 
@@ -220,14 +224,14 @@ namespace ariel {
      * @note this is an auxiliary function for bool Algorithms::isContainsCycle(const Graph& g) [see above]
      * 
      **/
-    bool Algorithms::hasCycle(const Graph& g) {
-       size_t numVertices = static_cast<size_t>(g.getNumVertices());
+    bool Algorithms::hasCycle(const Graph& graph) {
+       size_t numVertices = static_cast<size_t>(graph.getNumVertices());
         vector<bool> visited(numVertices, false);
         vector<int> parent(numVertices, -1);    // Parent vector for tracking the path of vertices
 
         // Check each vertex for cycles
-        for (size_t v = 0; v < numVertices; ++v) {
-            if (!visited[v] && dfs_cycle(g, static_cast<int>(v), visited, parent, -1)) {
+        for (size_t vertex_v = 0; vertex_v < numVertices; ++vertex_v) {
+            if (!visited[vertex_v] && dfs_cycle(graph, static_cast<int>(vertex_v), visited, parent, -1)) {
                 return true;
             }
         }
@@ -241,7 +245,7 @@ namespace ariel {
      * An auxiliary function for cycle detection using DFS algorithm.
      * 
      * @param graph The graph.
-     * @param v The current vertex.
+     * @param currect_v The current vertex.
      * @param visited Array to keep track of visited vertices.
      * @param parent Array to store the parent of each vertex.
      * @param prev The previous vertex.
@@ -249,20 +253,20 @@ namespace ariel {
      * @note this is an auxiliary function for the hasCycle [see above].
      * 
      **/
-    bool Algorithms::dfs_cycle(const Graph& g, int v, vector<bool>& visited, vector<int>& parent, int prev) {
-        visited[static_cast<size_t>(v)] = true;
-        const auto& adj = g.getAdjacencyMatrix();
+    bool Algorithms::dfs_cycle(const Graph& graph, int currect_v, vector<bool>& visited, vector<int>& parent, int prev) {
+        visited[static_cast<size_t>(currect_v)] = true;
+        const auto& adj = graph.getAdjacencyMatrix();
 
         // Explore each adjacent vertex
-        for (size_t i = 0; i < adj[static_cast<size_t>(v)].size(); ++i) {
-            if (adj[static_cast<size_t>(v)][i] != 0) {
+        for (size_t i = 0; i < adj[static_cast<size_t>(currect_v)].size(); ++i) {
+            if (adj[static_cast<size_t>(currect_v)][i] != 0) {
                 if (!visited[i]) {
-                    parent[i] = v;
-                    if (dfs_cycle(g, static_cast<int>(i), visited, parent, v)) {
+                    parent[i] = currect_v;
+                    if (dfs_cycle(graph, static_cast<int>(i), visited, parent, currect_v)) {
                         return true;
                     }
                 } else if (static_cast<int>(i) != prev) {
-                    printCycle(static_cast<int>(i), v, parent);
+                    printCycle(static_cast<int>(i), currect_v, parent);
                     return true;
                 }
             }
@@ -297,7 +301,9 @@ namespace ariel {
 
         cout << "Cycle found: ";
         for (size_t i = 0; i < cycle.size(); ++i) {
-            if (i != 0) cout << "->";
+            if (i != 0) {
+                cout << "->";
+            }
             cout << cycle[i];
         }
         cout << "->" << cycle[0] << endl;  // Print the start vertex at the end to complete the cycle
@@ -315,21 +321,21 @@ namespace ariel {
      * @return true if successful; otherwise, false.
      * @note this is an auxiliary function for string Algorithms::isBipartite(const Graph& g) [see above].
      */
-    bool Algorithms::bfs_bipartite(const Graph& g, int start, vector<int>& color) {
-        queue<int> q;
-        q.push(start);
+    bool Algorithms::bfs_bipartite(const Graph& graph, int start, vector<int>& color) {
+        queue<int> queue;
+        queue.push(start);
         color[static_cast<size_t>(start)] = 0;
 
-        while (!q.empty()) {
-            int v = q.front();
-            q.pop();
+        while (!queue.empty()) {
+            int vertex_v = queue.front();
+            queue.pop();
 
-            for (int w = 0; w < g.getNumVertices(); ++w) {
-                if (g.getAdjacencyMatrix()[static_cast<size_t>(v)][static_cast<size_t>(w)] != 0) {
-                    if (color[static_cast<size_t>(w)] == -1) {
-                        color[static_cast<size_t>(w)] = 1 - color[static_cast<size_t>(v)];
-                        q.push(w);
-                    } else if (color[static_cast<size_t>(w)] == color[static_cast<size_t>(v)]) {
+            for (int vertex_w = 0; vertex_w < graph.getNumVertices(); ++vertex_w) {
+                if (graph.getAdjacencyMatrix()[static_cast<size_t>(vertex_v)][static_cast<size_t>(vertex_w)] != 0) {
+                    if (color[static_cast<size_t>(vertex_w)] == -1) {
+                        color[static_cast<size_t>(vertex_w)] = 1 - color[static_cast<size_t>(vertex_v)];
+                        queue.push(vertex_w);
+                    } else if (color[static_cast<size_t>(vertex_w)] == color[static_cast<size_t>(vertex_v)]) {
                         return false;
                     }
                 }
@@ -339,7 +345,7 @@ namespace ariel {
     }
 
 
-
+    ///^^^^^^
      /**
      * This auxiliary function detects negative weight cycles in the graph using Bellman-Ford algorithm.
      * 
@@ -348,42 +354,56 @@ namespace ariel {
      * @note this is an auxiliary function for bool Algorithms::negativeCycle(const Graph& g) [see above]
      * 
      */
-    bool Algorithms::detectNegativeCycle(const Graph& g) {
-        const auto& adj = g.getAdjacencyMatrix();
-        size_t numVertices = static_cast<size_t>(g.getNumVertices());
+    bool Algorithms::detectNegativeCycle(const Graph& graph) {
+        const auto& adj = graph.getAdjacencyMatrix();
+        std::size_t numVertices = static_cast<std::size_t>(graph.getNumVertices());
 
-        if (numVertices == 0) return false;
+        if (numVertices == 0) {
+            return false;
+        }
 
         vector<int> dist(numVertices, INT_MAX);
 
-        for (size_t src = 0; src < numVertices; ++src) {
+        for (std::size_t src = 0; src < numVertices; ++src) {
             if (dist[src] == INT_MAX) {
                 dist[src] = 0;
-
-                for (int i = 0; i < g.getNumVertices() - 1; i++) {
-                    bool relaxed = false;
-                    for (size_t u = 0; u < g.getNumVertices(); u++) {
-                        for (size_t v = 0; v < g.getNumVertices(); v++) {
-                            if (adj[u][v] != 0 && dist[u] != INT_MAX && dist[u] + adj[u][v] < dist[v]) {
-                                dist[v] = dist[u] + adj[u][v];
-                                relaxed = true;     
-                            }
-                        }
+                for (std::size_t i = 0; i < numVertices - 1; i++) {
+                    if (!relaxEdges(adj, dist, numVertices)){
+                        break;
                     }
-                    if (!relaxed) break;
                 }
 
-                for (size_t u = 0; u < g.getNumVertices(); u++) {
-                    for (size_t v = 0; v < g.getNumVertices(); v++) {
-                        if (adj[u][v] != 0 && dist[u] != INT_MAX && dist[u] + adj[u][v] < dist[v]) {
-                            return true;  // Negative cycle detected
-                        }
-                    }
+                if (checkForNegativeCycle(adj, dist, numVertices)) {
+                    return true;
                 }
             }
         }
 
-        return false;  // No negative cycle in the graph
+        return false;
+    }
+
+    bool Algorithms::relaxEdges(const vector<vector<int>>& adj, vector<int>& dist, std::size_t numVertices) {
+        bool relaxed = false;
+        for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++) {
+            for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) {
+                if (adj[vertex_u][vertex_v] != 0 && dist[vertex_u] != INT_MAX && dist[vertex_u] + adj[vertex_u][vertex_v] < dist[vertex_v]) {
+                    dist[vertex_v] = dist[vertex_u] + adj[vertex_u][vertex_v];
+                    relaxed = true;
+                }
+            }
+        }
+        return relaxed;
+    }
+
+    bool Algorithms::checkForNegativeCycle(const vector<vector<int>>& adj, const vector<int>& dist, std::size_t numVertices) {
+        for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++) {
+            for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) {
+                if (adj[vertex_u][vertex_v] != 0 && dist[vertex_u] != INT_MAX && dist[vertex_u] + adj[vertex_u][vertex_v] < dist[vertex_v]) {
+                    return true;  // Negative cycle detected
+                }
+            }
+        }
+        return false;
     }
 
 
