@@ -6,95 +6,74 @@ using namespace std;
 
 namespace ariel {
 
-    /**
-     * 
-     * Constructor for the Graph class.
-     * Initializes a new graph with 0 vertices and edges, and is not directed.
-     * 
-     */
+    Graph::Graph() : numVertices(0), numEdges(0), isDirected(false) {}
 
-    
-    Graph::Graph() : numVertices(0), numEdges(0), isDirected(false) {}          // Same as  Graph::Graph() {
-                                                                                //                this->numVertices = 0;
-                                                                                //                this->numEdges = 0;
-                                                                                //                this->isDirected = false;
-                                                                                //          }
-                                                                                            
-    
-    /**
-     * 
-     * This function loads a graph from a given adjacency matrix.
-     * @param matrix A square matrix representing the adjacency of vertices, where matrix[i][j] represents
-     * the weight of the edge from vertex i to vertex j.
-     * @throws invalid_argument if the matrix is not square.
-     * 
-     */
-    void Graph::loadGraph(const vector<vector<int>>& matrix) {
+    void Graph::loadGraph(vector<vector<int>>& matrix) {
+        
+
+        // if (matrix.empty()) {
+        //     throw invalid_argument("Invalid graph: The graph matrix is empty.");
+        // }
+
+        numVertices = matrix.size();
+        numEdges = 0;
+
         // Check if the matrix is square
-        vector<vector<int>>::size_type rows = matrix.size();
         for (const auto& row : matrix) {
-            if (row.size() != rows) {
+            if (row.size() != numVertices) {
                 throw invalid_argument("Invalid graph: The graph is not a square matrix.");
             }
         }
+
+    adjacencyMatrix = matrix;
         
         adjacencyMatrix = matrix;
-        numVertices = static_cast<int>(rows); 
-        
+
+        // Check if the graph is directed
+        isDirected = false;
+        for (size_t i = 0; i < numVertices; i++) {
+            for (size_t j = 0; j < numVertices; j++) {
+                if (adjacencyMatrix[i][j] != adjacencyMatrix[j][i]) {
+                    isDirected = true;
+                    break;
+                }
+            }
+            if (isDirected) {
+                break;
+            }
+        }
+
         // Count the number of edges
-        numEdges = 0;
-        for (vector<vector<int>>::size_type i = 0; i < numVertices; i++) {
-            for (vector<vector<int>>::size_type j = i + 1; j < numVertices; j++) {
+        for (size_t i = 0; i < numVertices; i++) {
+            for (size_t j = i + 1; j < numVertices; j++) {
                 if (adjacencyMatrix[i][j] != 0) {
                     numEdges++;
-                    if (!isDirected) {
-                        numEdges++;
+                    if (isDirected) {
+                        numEdges++; // Only increment again if the graph is directed
                     }
                 }
             }
         }
     }
 
-
-    /**
-     * 
-     * This function prints the graph information to the standard output.
-     * 
-     */
-    void Graph::printGraph() const {
+    void Graph::printGraph() {
         cout << "Graph with " << numVertices << " vertices and " << numEdges << " edges." << endl;
     }
 
-
-    /**
-     * 
-     * This function returns the number of vertices in the graph.
-     * @return int The number of vertices.
-     * 
-     */
-    int Graph::getNumVertices() const {
+    size_t Graph::getNumVertices() {
         return numVertices;
     }
 
-
-    /**
-     * This function returns the number of edges in the graph.
-     * @return int The number of edges.
-     * 
-     */
-    int Graph::getNumEdges() const {
+    size_t Graph::getNumEdges() {
         return numEdges;
     }
 
-
-    /**
-     * 
-     * This function provides a "read-only" access to the graph's adjacency matrix.
-     * @return const vector<vector<int>>& The adjacency matrix of the graph.
-     * 
-     */
-    const vector<vector<int>>& Graph::getAdjacencyMatrix() const {
+    vector<vector<int>>& Graph::getAdjacencyMatrix() {
         return adjacencyMatrix;
+    }
+
+    bool Graph::isGraphDirected() {
+        return isDirected;
     }
 
 }

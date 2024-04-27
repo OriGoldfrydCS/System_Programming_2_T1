@@ -13,202 +13,251 @@ using namespace std;
 namespace ariel {
     
     /**
-     * 
      * This function checks if all vertices in a given graph (g) are reachable from the vertex with index 0 by using BFS algorithm.
-     * 
+     *
      * @param graph The graph to check.
      * @return true if all vertices are reachable; otherwise, false.
-     * 
      */
-    bool Algorithms::isConnected(const Graph& graph) {
-        int numVertices = graph.getNumVertices();       // Get the number of vertices in g
-        
-        // If the graph is empty, it is connected trivially
-        if (numVertices == 0){
+    bool Algorithms::isConnected(Graph& graph) {
+        size_t numVertices = graph.getNumVertices();
+
+        if (numVertices == 0) {
             return true;
         }
-        
-        vector<bool> visited(static_cast<size_t>(numVertices), false);      // Track visited vertices
-        queue<int> queue;                                                       // Queue for BFS
-        
-        // Start BFS from vertex 0
-        visited[0] = true;
-        queue.push(0);
-        int count = 1;
-        
-        // Perform BFS
-        while (!queue.empty()) {
-            int currentVertex = queue.front();
-            queue.pop();
-            
-            // Check all adjacent vertices
-            for (size_t i = 0; i < numVertices; i++) {
-                if (graph.getAdjacencyMatrix()[static_cast<size_t>(currentVertex)][i] != 0 && !visited[i]) {
-                    visited[i] = true;
-                    queue.push(static_cast<int>(i));
-                    count++;
-                }
-            }
-        }
-        
-        // The graph is connected if all vertices were visited
+
+        vector<bool> visited(numVertices, false);
+        size_t count = bfs(graph, 0, visited);
+
         return count == numVertices;
     }
-    
 
     /**
-     * 
-     * This function finds the shortest path from a start vertex to an end vertex by using Bellman-Ford algorithm.
-     * 
-     * @param graph The graph to search.
-     * @param start The starting vertex.
-     * @param end The destination vertex.
-     * @return A string representing the path or "-1" if no path exists.
-     * 
+     * This function checks if a given graph is strongly connected.
+     *
+     * @param graph The graph to check.
+     * @return true if the graph is strongly connected; otherwise, false.
      */
-    string Algorithms::shortestPath(const Graph& graph, int start, int end) {
-        size_t numVertices = static_cast<size_t>(graph.getNumVertices());
-        vector<int> distances(numVertices, numeric_limits<int>::max());
-        vector<int> predecessors(numVertices, -1);
-            
-        // Initialize the distance to the start vertex.
-        distances[static_cast<size_t>(start)] = 0;
+    bool Algorithms::isStronglyConnected(Graph& graph) {
+        size_t numVertices = graph.getNumVertices();
 
-        // Relax edges repeatedly n-1 times according to BF algorithm
-        for (size_t i = 0; i < numVertices - 1; ++i) {
-            for (size_t vertex_u = 0; vertex_u < numVertices; ++vertex_u) {
-                for (size_t vertex_v = 0; vertex_v < numVertices; ++vertex_v) {
-                    int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
-                    if (weight != 0 && distances[vertex_u] != numeric_limits<int>::max() &&
-                        distances[vertex_u] + weight < distances[vertex_v]) {
-                        distances[vertex_v] = distances[vertex_u] + weight;
-                        predecessors[vertex_v] = static_cast<int>(vertex_u);
+        if (numVertices == 0) {
+            return true;
+        }
+
+        // Perform BFS from each vertex
+        for (size_t startVertex = 0; startVertex < numVertices; startVertex++) {
+            vector<bool> visited(numVertices, false);
+            size_t count = bfs(graph, startVertex, visited);
+
+            if (count != numVertices) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    string Algorithms::shortestPath(Graph& graph, size_t start, size_t end) {
+        size_t numVertices = graph.getNumVertices();
+
+        // Error checking
+        if (start >= numVertices || end >= numVertices) {
+            return "Invalid start or end vertex";
+        }
+
+        if(start == end){
+            return "No path exists between a vertex and itself";
+        }
+
+        // Check if the graph is unweighted
+        bool isUnweighted = true;
+        for (size_t i = 0; i < numVertices; i++) {
+            for (size_t j = 0; j < numVertices; j++) {
+                if (graph.getAdjacencyMatrix()[i][j] != 0 && graph.getAdjacencyMatrix()[i][j] != 1) {
+                    isUnweighted = false;
+                    break;
+                }
+            }
+            if (!isUnweighted) {
+                break;
+            }
+        }
+
+        // Choose the appropriate algorithm based on the graph type
+        if (isUnweighted) {
+            return bfsShortestPath(graph, start, end);
+        } else {
+            // Check if the graph has negative edges
+            bool hasNegativeEdges = false;
+            for (size_t i = 0; i < numVertices; i++) {
+                for (size_t j = 0; j < numVertices; j++) {
+                    if (graph.getAdjacencyMatrix()[i][j] < 0) {
+                        hasNegativeEdges = true;
+                        break;
                     }
                 }
-            }
-        }
-
-        // Check for negative weight cycles
-        for (size_t vertex_u = 0; vertex_u < numVertices; ++vertex_u) {
-            for (size_t vertex_v = 0; vertex_v < numVertices; ++vertex_v) {
-                int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
-                if (weight != 0 && distances[vertex_u] != numeric_limits<int>::max() && 
-                    distances[vertex_u] + weight < distances[vertex_v]) {
-                    cout << "Graph contains a negative weight cycle" << endl;
-                    return "Graph contains a negative weight cycle";
+                if (hasNegativeEdges) {
+                    break;
                 }
             }
+
+            if (hasNegativeEdges) {
+                return bellmanFordShortestPath(graph, start, end);
+            } else {
+                return dijkstraShortestPath(graph, start, end);        
+            }
         }
-
-        // Build the path from the end vertex to the start using predecessors
-        if (distances[static_cast<size_t>(end)] == numeric_limits<int>::max()) {
-            return "-1";  // No path found
-        }
-
-        vector<int> path;
-        for (int at = end; at != -1; at = predecessors[static_cast<size_t>(at)]) {  // Safe cast for vector access
-            path.push_back(at);
-        }
-        reverse(path.begin(), path.end());
-
-        stringstream pathStream;
-        for (size_t i = 0; i < path.size(); i++) {
-            if (i > 0){
-                pathStream << "->";
-            } 
-            pathStream << path[i];
-        }
-
-        return pathStream.str();
-    }
-
-
-    /**
-     * 
-     * This function checks if the graph contains a cycle.
-     * 
-     * @param graph The graph.
-     * @return true if a cycle is found; otherwise, false.
-     * @note see also the auxiliary functions hasCycle, dfs_cycle and printCycle in the private section below.
-     * 
-     */
-    bool Algorithms::isContainsCycle(const Graph& graph) {
-        if (hasCycle(graph)) {
-            cout << "1" << endl;
-            return true;
-        } 
-        
-        cout << "0" << endl;
-        return false;
     }
 
     
+    std::string Algorithms::isContainsCycle(Graph& graph) {
+        size_t numVertices = graph.getNumVertices();
+        vector<bool> visited(numVertices, false);
+        vector<size_t> parent(numVertices, numeric_limits<size_t>::max());
 
-     /**
-     * 
-     * This function finds if the graph is bipartite.
-     * 
-     * @param graph The graph.
-     * @return A string representing the bipartite sets or "0" if not bipartite.
-     * @note see also the auxiliary function bfs_bipartite in the private section below.
-     * 
-     */
-    string Algorithms::isBipartite(const Graph& graph) {
-        const auto& adj = graph.getAdjacencyMatrix();
-        vector<int> color(static_cast<size_t>(graph.getNumVertices()), -1);
-
-        for (int vertex_v = 0; vertex_v < graph.getNumVertices(); ++vertex_v) {
-            if (color[static_cast<size_t>(vertex_v)] == -1) {
-                if (!bfs_bipartite(graph, vertex_v, color)) {
-                    return "0";
+        for (size_t v = 0; v < numVertices; v++) {
+            if (!visited[v]) {
+                string cycle = dfs_cycle(graph, v, visited, parent, v);
+                if (!cycle.empty()) {
+                    return cycle;
                 }
             }
         }
 
-        vector<int> setA;
-        vector<int> setB;
+        return "0";
+    }
+    
+    string Algorithms::isBipartite(Graph& graph) {
+    size_t numVertices = graph.getNumVertices();
+        vector<int> color(numVertices, -1); // -1 means uncolored
 
-        for (int vertex_v = 0; vertex_v < graph.getNumVertices(); ++vertex_v) {
-            if (color[static_cast<size_t>(vertex_v)] == 0) {
-                setA.push_back(vertex_v);
-            } else {
-                setB.push_back(vertex_v);
+        // Start BFS for every uncolored vertex
+        for (size_t start = 0; start < numVertices; ++start) {
+            if (color[start] == -1) { // Ensure each component is processed
+                if (!bfsBipartite(graph, start, color)) {
+                    return "The graph is not bipartite";
+                }
             }
         }
 
+        // Collect the sets A and B
+        vector<int> setA, setB;
+        for (size_t i = 0; i < numVertices; ++i) {
+            if (color[i] == 0) setA.push_back(i);
+            else if (color[i] == 1) setB.push_back(i);
+        }
+
+        // Construct the result string
         stringstream result;
         result << "The graph is bipartite: A={";
-        for (size_t i = 0; i < setA.size(); ++i) {
+        for (size_t i = 0; i < setA.size(); i++) {
             result << setA[i];
-            if (i < setA.size() - 1) {
-                result << ", ";
-            }
+            if (i < setA.size() - 1) result << ",";
         }
         result << "}, B={";
-        for (size_t i = 0; i < setB.size(); ++i) {
+        for (size_t i = 0; i < setB.size(); i++) {
             result << setB[i];
-            if (i < setB.size() - 1) {
-                result << ", ";
-            }
+            if (i < setB.size() - 1) result << ",";
         }
         result << "}";
         return result.str();
     }
 
-    
-    /**
-     * 
-     * This function checks for negative weight cycles.
-     * 
-     * @param graph The graph.
-     * @return true if the graph has a negative weight cycle; otherwise, false.
-     * @note see also the auxiliary function detectNegativeCycle in the private section below.
-     * 
-     */
-    bool Algorithms::negativeCycle(const Graph& graph) {
-        return detectNegativeCycle(graph);
+    string Algorithms::negativeCycle(Graph& graph) {
+    size_t numVertices = graph.getNumVertices();
+    vector<int> distance(numVertices, 0);
+    vector<size_t> parent(numVertices, numeric_limits<size_t>::max());
+    bool hasNegativeCycle = false;
+
+        // Part 1: Check for negative self-loops
+    for (size_t u = 0; u < numVertices; u++) {
+        if (graph.getAdjacencyMatrix()[u][u] < 0) {
+            hasNegativeCycle = true;
+            return to_string(u) + "->" + to_string(u);
+        }
     }
 
+    // Part 2: Check for negative cycles between neighboring vertices with different edge weights
+    for (size_t u = 0; u < numVertices; u++) {
+        for (size_t v = 0; v < numVertices; v++) {
+            if (u != v && graph.getAdjacencyMatrix()[u][v] != 0 && graph.getAdjacencyMatrix()[v][u] != 0 &&
+                graph.getAdjacencyMatrix()[u][v] != graph.getAdjacencyMatrix()[v][u]) {
+                int weight = graph.getAdjacencyMatrix()[u][v] + graph.getAdjacencyMatrix()[v][u];
+                if (weight < 0) {
+                    hasNegativeCycle = true;
+                    return to_string(u) + "->" + to_string(v) + "->" + to_string(u);
+                }
+            }
+        }
+    }
+
+    // Part 3: Relax edges V times to find negative cycles with distance greater than one edge
+    for (size_t i = 0; i < numVertices; i++) {
+        for (size_t u = 0; u < numVertices; u++) {
+            for (size_t v = 0; v < numVertices; v++) {
+                int weight = graph.getAdjacencyMatrix()[u][v];
+                if (weight != 0 && distance[u] + weight < distance[v]) {
+                    distance[v] = distance[u] + weight;
+                    parent[v] = u;
+
+                    // Check for negative cycle
+                    if (i == numVertices - 1) {
+                        hasNegativeCycle = true;
+                    }
+                }
+            }
+        }
+    }
+
+    // Part 4: If a negative cycle is found, trace back the cycle and format the cycle string
+    if (hasNegativeCycle) {
+        size_t startVertex = 0;
+
+        // Find a vertex that is part of the negative cycle
+        for (size_t v = 0; v < numVertices; v++) {
+            if (parent[v] != numeric_limits<size_t>::max()) {
+                startVertex = v;
+                break;
+            }
+        }
+
+        vector<size_t> cycle;
+        unordered_set<size_t> visited;
+        size_t current = startVertex;
+
+        // Trace back to find the cycle
+        while (visited.find(current) == visited.end()) {
+            visited.insert(current);
+            cycle.push_back(current);
+            current = parent[current];
+        }
+        cycle.push_back(current);
+
+        // Check if the cycle involves vertices with the same weight
+        bool isValidCycle = false;
+        for (size_t i = 0; i < cycle.size() - 1; i++) {
+            size_t u = cycle[i];
+            size_t v = cycle[i + 1];
+            if (graph.getAdjacencyMatrix()[u][v] != graph.getAdjacencyMatrix()[v][u]) {
+                isValidCycle = true;
+                break;
+            }
+        }
+
+        if (isValidCycle) {
+            // Format the cycle string
+            stringstream cycleString;
+            cycleString << cycle[cycle.size() - 1];
+            for (size_t i = cycle.size() - 2; i > 0; i--) {
+                cycleString << "->" << cycle[i];
+            }
+
+            return cycleString.str();
+        }
+    }
+
+    return "No negative cycle exists";
+}
 
 
     /*********************************************/
@@ -216,223 +265,254 @@ namespace ariel {
     /*********************************************/
 
     /**
-     * 
-     * This function detects if the graph contains any cycle.
-     * 
-     * @param graph The graph to check.
-     * @return true if the graph contains a cycle; otherwise, false.
-     * @note this is an auxiliary function for bool Algorithms::isContainsCycle(const Graph& g) [see above]
-     * 
-     **/
-    bool Algorithms::hasCycle(const Graph& graph) {
-       size_t numVertices = static_cast<size_t>(graph.getNumVertices());
-        vector<bool> visited(numVertices, false);
-        vector<int> parent(numVertices, -1);    // Parent vector for tracking the path of vertices
+     * Performs BFS on the graph starting from the given vertex.
+     *
+     * @param graph The graph to perform BFS on.
+     * @param startVertex The starting vertex for BFS.
+     * @param visited A vector to track visited vertices.
+     * @return The number of vertices visited during BFS.
+     */
+    size_t Algorithms::bfs(Graph& graph, size_t startVertex, vector<bool>& visited) {
+        queue<size_t> queue;
+        visited[startVertex] = true;
+        queue.push(startVertex);
+        size_t count = 1;
 
-        // Check each vertex for cycles
-        for (size_t vertex_v = 0; vertex_v < numVertices; ++vertex_v) {
-            if (!visited[vertex_v] && dfs_cycle(graph, static_cast<int>(vertex_v), visited, parent, -1)) {
-                return true;
-            }
-        }
-        return false;
-    }
+        while (!queue.empty()) {
+            size_t currentVertex = queue.front();
+            queue.pop();
 
-
-
-    /**
-     * 
-     * An auxiliary function for cycle detection using DFS algorithm.
-     * 
-     * @param graph The graph.
-     * @param currect_v The current vertex.
-     * @param visited Array to keep track of visited vertices.
-     * @param parent Array to store the parent of each vertex.
-     * @param prev The previous vertex.
-     * @return true if a cycle is found; otherwise, false.
-     * @note this is an auxiliary function for the hasCycle [see above].
-     * 
-     **/
-    bool Algorithms::dfs_cycle(const Graph& graph, int currect_v, vector<bool>& visited, vector<int>& parent, int prev) {
-        visited[static_cast<size_t>(currect_v)] = true;
-        const auto& adj = graph.getAdjacencyMatrix();
-
-        // Explore each adjacent vertex
-        for (size_t i = 0; i < adj[static_cast<size_t>(currect_v)].size(); ++i) {
-            if (adj[static_cast<size_t>(currect_v)][i] != 0) {
-                if (!visited[i]) {
-                    parent[i] = currect_v;
-                    if (dfs_cycle(graph, static_cast<int>(i), visited, parent, currect_v)) {
-                        return true;
-                    }
-                } else if (static_cast<int>(i) != prev) {
-                    printCycle(static_cast<int>(i), currect_v, parent);
-                    return true;
+            for (size_t i = 0; i < graph.getNumVertices(); i++) {
+                if (graph.getAdjacencyMatrix()[currentVertex][i] != 0 && !visited[i]) {
+                    visited[i] = true;
+                    queue.push(i);
+                    count++;
                 }
             }
         }
 
-        return false;
+        return count;
     }
 
 
 
-    /**
-     * This function prints the cycle found in the graph (if found).
-     * 
-     * @param start The starting vertex of the cycle.
-     * @param end The ending vertex of the cycle.
-     * @param parent The array containing the parent of each vertex.
-     * @note this is an auxiliary function for the dfs_cycle function [see above].
-     * 
-     **/
-    void Algorithms::printCycle(int start, int end, const vector<int>& parent) {
-        vector<int> cycle;
-        int current = end;
-        cycle.push_back(current);
+    string Algorithms::bfsShortestPath(Graph& graph, size_t start, size_t end) {
+        size_t numVertices = graph.getNumVertices();
+        vector<bool> visited(numVertices, false);
+        vector<size_t> parent(numVertices, numeric_limits<size_t>::max());
 
-        // Trace back the cycle path
-        while (current != start) {
-            current = parent[static_cast<size_t>(current)];
-            cycle.push_back(current);
-        }
-
-        reverse(cycle.begin(), cycle.end());
-
-        cout << "Cycle found: ";
-        for (size_t i = 0; i < cycle.size(); ++i) {
-            if (i != 0) {
-                cout << "->";
-            }
-            cout << cycle[i];
-        }
-        cout << "->" << cycle[0] << endl;  // Print the start vertex at the end to complete the cycle
-    }
-
-
-
-    /**
-     * 
-     * An auxiliary function for BFS used in bipartite checking.
-     * 
-     * @param graph The graph.
-     * @param start The starting vertex for BFS.
-     * @param color Array to store the color of each vertex.
-     * @return true if successful; otherwise, false.
-     * @note this is an auxiliary function for string Algorithms::isBipartite(const Graph& g) [see above].
-     */
-    bool Algorithms::bfs_bipartite(const Graph& graph, int start, vector<int>& color) {
-        queue<int> queue;
+        queue<size_t> queue;
+        visited[start] = true;
         queue.push(start);
-        color[static_cast<size_t>(start)] = 0;
 
         while (!queue.empty()) {
-            int vertex_v = queue.front();
+            size_t currentVertex = queue.front();
             queue.pop();
 
-            for (int vertex_w = 0; vertex_w < graph.getNumVertices(); ++vertex_w) {
-                if (graph.getAdjacencyMatrix()[static_cast<size_t>(vertex_v)][static_cast<size_t>(vertex_w)] != 0) {
-                    if (color[static_cast<size_t>(vertex_w)] == -1) {
-                        color[static_cast<size_t>(vertex_w)] = 1 - color[static_cast<size_t>(vertex_v)];
-                        queue.push(vertex_w);
-                    } else if (color[static_cast<size_t>(vertex_w)] == color[static_cast<size_t>(vertex_v)]) {
-                        return false;
+            if (currentVertex == end) {
+                break;
+            }
+
+            for (size_t i = 0; i < numVertices; i++) {
+                if (graph.getAdjacencyMatrix()[currentVertex][i] != 0 && !visited[i]) {
+                    visited[i] = true;
+                    queue.push(i);
+                    parent[i] = currentVertex;
+                }
+            }
+        }
+
+        if (!visited[end]) {
+            return "No path exists between " + to_string(start) + " and " + to_string(end);
+        }
+
+        // Reconstruct the shortest path
+        string path;
+        size_t current = end;
+        while (current != start) {
+            path = "->" + to_string(current) + path;
+            current = parent[current];
+        }
+        path = to_string(start) + path;
+
+        return path;
+    }
+
+
+    string Algorithms::bellmanFordShortestPath(Graph& graph, size_t start, size_t end) {
+        size_t numVertices = graph.getNumVertices();
+        vector<int> distance(numVertices, numeric_limits<int>::max());
+        vector<size_t> parent(numVertices, numeric_limits<size_t>::max());
+
+        distance[start] = 0;
+
+        // Relax edges V-1 times
+        for (int i = 0; i < numVertices - 1; i++) {
+            for (size_t u = 0; u < numVertices; u++) {
+                for (size_t v = 0; v < numVertices; v++) {
+                    int weight = graph.getAdjacencyMatrix()[u][v];
+                    if (weight != 0 && distance[u] != numeric_limits<int>::max() && distance[u] + weight < distance[v]) {
+                        distance[v] = distance[u] + weight;
+                        parent[v] = u;
+                    }
+                }
+            }
+        }
+
+        // Check for negative cycle on the V-th iteration
+        for (size_t u = 0; u < numVertices; u++) {
+            for (size_t v = 0; v < numVertices; v++) {
+                int weight = graph.getAdjacencyMatrix()[u][v];
+                if (weight != 0 && distance[u] != numeric_limits<int>::max() && distance[u] + weight < distance[v]) {
+                    return "Graph contains a negative cycle";
+                }
+            }
+        }
+
+        if (distance[end] == numeric_limits<int>::max()) {
+            return "No path exists between " + to_string(start) + " and " + to_string(end);
+        }
+
+        // Reconstruct the shortest path
+        string path;
+        size_t current = end;
+        while (current != start) {
+            path = "->" + to_string(current) + path;
+            current = parent[current];
+        }
+        path = to_string(start) + path;
+
+        return path;
+    }
+
+
+
+    string Algorithms::dijkstraShortestPath(Graph& graph, size_t start, size_t end) {
+        size_t numVertices = graph.getNumVertices();
+        vector<int> distance(numVertices, numeric_limits<int>::max());
+        vector<size_t> parent(numVertices, numeric_limits<size_t>::max());
+        vector<bool> visited(numVertices, false);
+
+        distance[start] = 0;
+
+        for (size_t i = 0; i < numVertices; i++) {
+            size_t minVertex = numeric_limits<size_t>::max();
+            int minDistance = numeric_limits<int>::max();
+
+            for (size_t v = 0; v < numVertices; v++) {
+                if (!visited[v] && distance[v] < minDistance) {
+                    minVertex = v;
+                    minDistance = distance[v];
+                }
+            }
+
+            if (minVertex == numeric_limits<size_t>::max()) {
+                break;
+            }
+
+            visited[minVertex] = true;
+
+            for (size_t v = 0; v < numVertices; v++) {
+                int weight = graph.getAdjacencyMatrix()[minVertex][v];
+                if (weight != 0 && !visited[v] && distance[minVertex] != numeric_limits<int>::max() &&
+                    distance[minVertex] + weight < distance[v]) {
+                    distance[v] = distance[minVertex] + weight;
+                    parent[v] = minVertex;
+                }
+            }
+        }
+
+        if (distance[end] == numeric_limits<int>::max()) {
+            return "No path exists between " + to_string(start) + " and " + to_string(end);
+        }
+
+        // Reconstruct the shortest path
+        string path;
+        size_t current = end;
+        while (current != start) {
+            path = "->" + to_string(current) + path;
+            current = parent[current];
+        }
+        path = to_string(start) + path;
+
+        return path;
+    }
+
+    string Algorithms::dfs_cycle(Graph& graph, size_t v, vector<bool>& visited, vector<size_t>& parent, size_t start) {
+        visited[v] = true;
+
+        for (size_t i = 0; i < graph.getNumVertices(); i++) {
+            if (graph.getAdjacencyMatrix()[v][i] != 0) {
+                if (!visited[i]) {
+                    parent[i] = v;
+                    string cycle = dfs_cycle(graph, i, visited, parent, start);
+                    if (!cycle.empty()) {
+                        return cycle;
+                    }
+                } else if (i != parent[v] && i == start) {
+                    // Found a cycle
+                    string cycle = to_string(i);
+                    size_t current = v;
+                    while (current != i) {
+                        cycle = to_string(current) + "->" + cycle;
+                        current = parent[current];
+                    }
+                    cycle = to_string(i) + "->" + cycle;
+                    return cycle;
+                }
+            }
+        }
+
+        return "";
+    }
+
+//     bool Algorithms::bfs_bipartite(Graph& graph, size_t start, vector<int>& color) {
+//     queue<size_t> queue;
+//     queue.push(start);
+//     color[start] = 0;
+
+//     while (!queue.empty()) {
+//         size_t vertex_v = queue.front();
+//         queue.pop();
+
+//         for (size_t vertex_w = 0; vertex_w < graph.getNumVertices(); ++vertex_w) {
+//             if (graph.getAdjacencyMatrix()[vertex_v][vertex_w] != 0) {
+//                 if (color[vertex_w] == -1) {
+//                     color[vertex_w] = 1 - color[vertex_v];
+//                     queue.push(vertex_w);
+//                 } else if (color[vertex_w] == color[vertex_v]) {
+//                     return false;
+//                 }
+//             }
+//         }
+//     }
+
+//     return true;
+// }
+bool Algorithms::bfsBipartite(Graph& graph, size_t start, vector<int>& color) {
+    queue<size_t> q;
+        q.push(start);
+        color[start] = 0; // Start coloring with 0
+
+        while (!q.empty()) {
+            size_t current = q.front();
+            q.pop();
+
+            int currentColor = color[current];
+            int oppositeColor = 1 - currentColor;
+
+            const auto& neighbors = graph.getAdjacencyMatrix()[current];
+            for (size_t i = 0; i < neighbors.size(); ++i) {
+                if (neighbors[i] != 0) { // There is an edge
+                    if (color[i] == -1) { // If the vertex is not colored
+                        color[i] = oppositeColor;
+                        q.push(i);
+                    } else if (color[i] == currentColor) { // If colored the same as current
+                        return false; // Not bipartite
                     }
                 }
             }
         }
         return true;
     }
-
-
-    ///^^^^^^
-     /**
-     * This auxiliary function detects negative weight cycles in the graph using Bellman-Ford algorithm.
-     * 
-     * @param graph The graph.
-     * @return true if a negative cycle is detected; otherwise, false.
-     * @note this is an auxiliary function for bool Algorithms::negativeCycle(const Graph& g) [see above]
-     * 
-     */
-    bool Algorithms::detectNegativeCycle(const Graph& graph) {
-        const auto& adj = graph.getAdjacencyMatrix();
-        std::size_t numVertices = static_cast<std::size_t>(graph.getNumVertices());
-
-        if (numVertices == 0) {
-            return false;
-        }
-
-        vector<int> dist(numVertices, INT_MAX);
-
-        for (std::size_t src = 0; src < numVertices; ++src) {
-            if (dist[src] == INT_MAX) {
-                dist[src] = 0;
-                for (std::size_t i = 0; i < numVertices - 1; i++) {
-                    if (!relaxEdges(adj, dist, numVertices)){
-                        break;
-                    }
-                }
-
-                if (checkForNegativeCycle(adj, dist, numVertices)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    bool Algorithms::relaxEdges(const vector<vector<int>>& adj, vector<int>& dist, std::size_t numVertices) {
-        bool relaxed = false;
-        for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++) {
-            for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) {
-                if (adj[vertex_u][vertex_v] != 0 && dist[vertex_u] != INT_MAX && dist[vertex_u] + adj[vertex_u][vertex_v] < dist[vertex_v]) {
-                    dist[vertex_v] = dist[vertex_u] + adj[vertex_u][vertex_v];
-                    relaxed = true;
-                }
-            }
-        }
-        return relaxed;
-    }
-
-    bool Algorithms::checkForNegativeCycle(const vector<vector<int>>& adj, const vector<int>& dist, std::size_t numVertices) {
-        for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++) {
-            for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) {
-                if (adj[vertex_u][vertex_v] != 0 && dist[vertex_u] != INT_MAX && dist[vertex_u] + adj[vertex_u][vertex_v] < dist[vertex_v]) {
-                    return true;  // Negative cycle detected
-                }
-            }
-        }
-        return false;
-    }
-
-
-
-    /*********************************************/
-    ///              TO BE DELETED              ///
-    /*********************************************/
-
-    // bool Algorithms::isBipartiteUtil(int v, const vector<vector<int>>& adj, vector<int>& color, vector<bool>& visited) {
-    //     std::size_t v_index = static_cast<std::size_t>(v);
-    //     queue<int> q;
-    //     q.push(v);
-    //     color[v_index] = 0; // Start coloring with 0
-    //     visited[v_index] = true;
-
-    //     while (!q.empty()) {
-    //         int u = q.front(); q.pop();
-    //         std::size_t u_index = static_cast<std::size_t>(u);
-
-    //         for (std::size_t i = 0; i < adj[u_index].size(); i++) {
-    //             if (adj[u_index][i] != 0 && !visited[i]) {
-    //                 color[i] = 1 - color[u_index]; // Alternate color
-    //                 visited[i] = true;
-    //                 q.push(static_cast<int>(i));
-    //             } else if (adj[u_index][i] != 0 && color[i] == color[u_index]) {
-    //                 return false;
-    //             }
-    //         }
-    //     }
-    //     return true;
-    // }
 }
