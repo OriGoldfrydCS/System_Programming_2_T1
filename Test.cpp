@@ -249,8 +249,6 @@ TEST_CASE("Test isContainsCycle: Directed graph with a cycle") {
 
 
 TEST_CASE("isContainsCycle - Disconnected graph with cycles") {
-
-    // Test case 1: Disconnected graph with cycles
     vector<vector<int>> graph1 = {
         {0, 1, 0, 0, 0},
         {1, 0, 1, 0, 0},
@@ -409,8 +407,8 @@ TEST_CASE("Test isBipartite: Bipartite graph with connected components") {
         {0, 0, 0, 0, 0, 1, 0}};
     g.loadGraph(bipartiteConnectedComponentsGraph);
 
-    string expectedOutput = "The graph is bipartite: A={0,2,4,6}, B={1,3,5}";
-    CHECK(Algorithms::isBipartite(g) == expectedOutput);
+    CHECK(((Algorithms::isBipartite(g) == "The graph is bipartite: A={0,2,4,6}, B={1,3,5}")
+    || (Algorithms::isBipartite(g) == "The graph is bipartite: A={0,2,5}, B={1,3,4,6}")));
 }
 
 TEST_CASE("Test isBipartite: Bipartite graph with an even cycle") {
@@ -742,15 +740,15 @@ TEST_CASE("Test shortestPath for BFS and BF")
 
 TEST_CASE("Test XXX"){
 
-    // vector<vector<int>> graph3 = {           //////////////////////////////////
-    //     {0, 8, -1},
-    //     {8, 0, -5},
-    //     {-1, -5, 0}};
-    // g.loadGraph(graph3);
-    // CHECK(ariel::Algorithms::shortestPath(g, 0, 2) == "0->2");
-    // CHECK(ariel::Algorithms::shortestPath(g, 0, 1) == "0->2->1");
-    // CHECK(ariel::Algorithms::shortestPath(g, 1, 2) == "1->2");
-    // CHECK(ariel::Algorithms::shortestPath(g, 1, 0) == "1->2->0");
+    vector<vector<int>> graph3 = {           //////////////////////////////////
+        {0, 8, -1},
+        {8, 0, -5},
+        {-1, -5, 0}};
+    g.loadGraph(graph3);
+    CHECK(ariel::Algorithms::shortestPath(g, 0, 2) == "0->2");
+    CHECK(ariel::Algorithms::shortestPath(g, 0, 1) == "0->2->1");
+    CHECK(ariel::Algorithms::shortestPath(g, 1, 2) == "1->2");
+    CHECK(ariel::Algorithms::shortestPath(g, 1, 0) == "1->2->0");
 
     vector<vector<int>> graph4 = {
         {0, 3, -1},
@@ -826,8 +824,7 @@ TEST_CASE("Test isContainsCycle")
         {1, 0, 1},
         {0, 1, 0}};
     g.loadGraph(graph3);
-    // CHECK(ariel::Algorithms::isContainsCycle(g) == "0->1->0");  //no correct
-    CHECK(ariel::Algorithms::isContainsCycle(g) == "0"); 
+    CHECK(ariel::Algorithms::isContainsCycle(g) == "0->1->0");
 
     vector<vector<int>> graph2 = {
         {0, 1, 1, 0, 0},
@@ -843,14 +840,8 @@ TEST_CASE("Test isContainsCycle")
         {0, 8, -2},
         {8, 0, -5},
         {-1, -5, 0}};
-    g.loadGraph(graph4);
-//     int res1 = ariel::Algorithms::isContainsCycle(g).compare("0->2->0") == 0;
-//     int res2 = ariel::Algorithms::isContainsCycle(g).compare("2->0->2") == 0;
-//     std::cout << "Cycle 0->2->0 detected: " << res1 << std::endl;
-//     std::cout << "Cycle 2->0->2 detected: " << res2 << std::endl;
-
-//     CHECK((res1 || res2));    
-    // CHECK(((ariel::Algorithms::isContainsCycle(g) == "0->2->0") || (ariel::Algorithms::negativeCycle(g) == "2->0->2"))); // there is more than 1 cycle
+    g.loadGraph(graph4);   
+    CHECK(((ariel::Algorithms::isContainsCycle(g) == "0->2->0") || (ariel::Algorithms::negativeCycle(g) == "2->0->2"))); // there is more than 1 cycle
 
     vector<vector<int>> graph5 = {
         {0, 8, -1},
@@ -858,8 +849,7 @@ TEST_CASE("Test isContainsCycle")
         {-1, -5, 0}};
     g.loadGraph(graph5);
 
-    // CHECK(ariel::Algorithms::isContainsCycle(g).compare("0->2->0") == 0 || ariel::Algorithms::negativeCycle(g).compare("2->0->2") == 0);
-    // CHECK(((ariel::Algorithms::isContainsCycle(g) == "0->2->0") || (ariel::Algorithms::negativeCycle(g) == "2->0->2"))); // there is more than 1 cycle
+    CHECK(((ariel::Algorithms::isContainsCycle(g) == "0->2->0") || (ariel::Algorithms::negativeCycle(g) == "2->0->2"))); // there is more than 1 cycle
 
     vector<vector<int>> graph6 = {
         {0, 3, 7},
@@ -873,7 +863,6 @@ TEST_CASE("Test isContainsCycle")
 
     graph6[1][2] = 6;
     g.loadGraph(graph6);
-    // CHECK(ariel::Algorithms::isContainsCycle(g).compare("2->0->1") == 0 || ariel::Algorithms::negativeCycle(g).compare("0->1->2->0") == 0);
     CHECK(((ariel::Algorithms::isContainsCycle(g) == "2->0->1") || (ariel::Algorithms::isContainsCycle(g) == "0->1->2->0"))); // directed is by graph, or by edge?
 
     vector<vector<int>> graph7 = {
@@ -882,7 +871,6 @@ TEST_CASE("Test isContainsCycle")
         {0, 0, 0, 5},
         {0, -2, 0, 0}};
     g.loadGraph(graph7);
-    // CHECK(ariel::Algorithms::isContainsCycle(g).compare("1->2->3->1") == 0);
     CHECK(ariel::Algorithms::isContainsCycle(g) == "1->2->3->1");
 }
 

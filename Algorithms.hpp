@@ -25,7 +25,8 @@ namespace ariel {
             static string dijkstraShortestPath(Graph& graph, size_t start, size_t end);
             static string dfs_cycle(Graph& graph, size_t v, vector<bool>& visited, vector<size_t>& parent, size_t start);
             // static bool bfs_bipartite(Graph& graph, size_t start, vector<int>& color);
-            static bool bfsBipartite(Graph& graph, size_t start, vector<int>& color);
+            // static bool bfsBipartite(Graph& graph, size_t start, vector<int>& color);
+            static bool dfsCheck(Graph& graph, size_t u, std::vector<int>& color, int col) ;
             
 
 

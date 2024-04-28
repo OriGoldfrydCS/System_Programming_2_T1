@@ -110,7 +110,7 @@ namespace ariel {
     }
 
     
-    std::string Algorithms::isContainsCycle(Graph& graph) {
+    string Algorithms::isContainsCycle(Graph& graph) {
         size_t numVertices = graph.getNumVertices();
         vector<bool> visited(numVertices, false);
         vector<size_t> parent(numVertices, numeric_limits<size_t>::max());
@@ -128,27 +128,25 @@ namespace ariel {
     }
     
     string Algorithms::isBipartite(Graph& graph) {
-    size_t numVertices = graph.getNumVertices();
-        vector<int> color(numVertices, -1); // -1 means uncolored
+       size_t numVertices = graph.getNumVertices();
+        std::vector<int> color(numVertices, -1);  // -1 indicates uncolored
 
-        // Start BFS for every uncolored vertex
-        for (size_t start = 0; start < numVertices; ++start) {
-            if (color[start] == -1) { // Ensure each component is processed
-                if (!bfsBipartite(graph, start, color)) {
+        for (size_t i = 0; i < numVertices; ++i) {
+            if (color[i] == -1) {  // Start DFS only if the vertex is not colored
+                if (!dfsCheck(graph, i, color, 0)) {
                     return "The graph is not bipartite";
                 }
             }
         }
 
-        // Collect the sets A and B
-        vector<int> setA, setB;
+        // Collecting sets A and B for output, represented as BLUE and WHITE
+        std::vector<size_t> setA, setB;
         for (size_t i = 0; i < numVertices; ++i) {
-            if (color[i] == 0) setA.push_back(i);
-            else if (color[i] == 1) setB.push_back(i);
+            if (color[i] == 0) setA.push_back(i);  // BLUE
+            else if (color[i] == 1) setB.push_back(i);  // WHITE
         }
 
-        // Construct the result string
-        stringstream result;
+        std::stringstream result;
         result << "The graph is bipartite: A={";
         for (size_t i = 0; i < setA.size(); i++) {
             result << setA[i];
@@ -162,6 +160,34 @@ namespace ariel {
         result << "}";
         return result.str();
     }
+
+
+    bool Algorithms::dfsCheck(Graph& graph, size_t u, std::vector<int>& color, int col) {
+        color[u] = col;  // Color the vertex
+
+        for (size_t v = 0; v < graph.getNumVertices(); ++v) {
+            if (graph.getAdjacencyMatrix()[u][v] == 0 && u != v) {  // Check for non-edge
+                if (color[v] == -1) {   // If vertex v is not colored
+                    color[v] = col;     // Color the same as u
+                    if (!dfsCheck(graph, v, color, col)) {
+                        return false;
+                    }
+                }
+            } else if (graph.getAdjacencyMatrix()[u][v] != 0) {  // If there's an actual edge
+                if (color[v] == -1) {
+                    color[v] = 1 - col;  // Assign opposite color
+                    if (!dfsCheck(graph, v, color, 1 - col)) {
+                        return false;
+                    }
+                } else if (color[v] == col) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+
 
     string Algorithms::negativeCycle(Graph& graph) {
     size_t numVertices = graph.getNumVertices();
@@ -489,30 +515,5 @@ namespace ariel {
 
 //     return true;
 // }
-bool Algorithms::bfsBipartite(Graph& graph, size_t start, vector<int>& color) {
-    queue<size_t> q;
-        q.push(start);
-        color[start] = 0; // Start coloring with 0
 
-        while (!q.empty()) {
-            size_t current = q.front();
-            q.pop();
-
-            int currentColor = color[current];
-            int oppositeColor = 1 - currentColor;
-
-            const auto& neighbors = graph.getAdjacencyMatrix()[current];
-            for (size_t i = 0; i < neighbors.size(); ++i) {
-                if (neighbors[i] != 0) { // There is an edge
-                    if (color[i] == -1) { // If the vertex is not colored
-                        color[i] = oppositeColor;
-                        q.push(i);
-                    } else if (color[i] == currentColor) { // If colored the same as current
-                        return false; // Not bipartite
-                    }
-                }
-            }
-        }
-        return true;
-    }
 }
