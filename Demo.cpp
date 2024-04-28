@@ -17,13 +17,13 @@ int main()
     ariel::Graph g;
     // 3x3 matrix that represents a connected graph.
     vector<vector<int>> graph = {
-         {0, 8, -1},
-        {8, 0, -5},
-        {-1, -5, 0}};
+         {0, 2, 0},
+        {1, 0, 1},
+        {0, 1, 0}};
     g.loadGraph(graph); // Load the graph to the object.
 
     g.printGraph();                                    // Should print: "Graph with 3 vertices and 4 edges."
-        cout << Algorithms::negativeCycle(g) << endl;    // Should print: "0" (false).
+        cout << Algorithms::isContainsCycle(g) << endl;    // Should print: "0" (false).
     cout << "111111111" << endl;
     cout << Algorithms::isConnected(g) << endl;        // Should print: "1" (true).
     cout << Algorithms::shortestPath(g, 0, 2) << endl ;

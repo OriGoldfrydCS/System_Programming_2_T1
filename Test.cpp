@@ -614,7 +614,7 @@ TEST_CASE("Test negativeCycle: Graph with negative cycle") {
         {6, 8, -4, 0, 9},
         {0, 5, 7, 9, 0}};
     g.loadGraph(negativeCycleGraph);
-    CHECK(Algorithms::negativeCycle(g) == "0->1->2->3->0");
+    CHECK(((Algorithms::negativeCycle(g) == "0->1->2->3->0") || (Algorithms::negativeCycle(g) == "1->2->3->0->1")));
 }
 
 TEST_CASE("Test negativeCycle: Graph with a negative weight cycle") {
@@ -624,7 +624,7 @@ TEST_CASE("Test negativeCycle: Graph with a negative weight cycle") {
         {0, 0, 0, -1},
         {-1, 0, 0, 0}};
     g.loadGraph(negativeWeightCycleGraph);
-    CHECK(Algorithms::negativeCycle(g) == "0->1->2->3->0");
+    CHECK(((Algorithms::negativeCycle(g) == "0->1->2->3->0") || (Algorithms::negativeCycle(g) == "1->2->3->0->1")));
 }
 
 TEST_CASE("Test negativeCycle: Graph with negative weights and no negative cycle") {

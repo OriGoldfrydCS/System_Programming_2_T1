@@ -129,63 +129,64 @@ namespace ariel {
     
     string Algorithms::isBipartite(Graph& graph) {
        size_t numVertices = graph.getNumVertices();
-        std::vector<int> color(numVertices, -1);  // -1 indicates uncolored
+    vector<int> color(numVertices, -1);  // -1 indicates uncolored
 
-        for (size_t i = 0; i < numVertices; ++i) {
-            if (color[i] == -1) {  // Start DFS only if the vertex is not colored
-                if (!dfsCheck(graph, i, color, 0)) {
-                    return "The graph is not bipartite";
-                }
+    for (size_t i = 0; i < numVertices; ++i) {
+        if (color[i] == -1) {  // If uncolored, start a new DFS
+            if (!dfsCheck(graph, i, color, 0)) {
+                return "The graph is not bipartite";
             }
         }
-
-        // Collecting sets A and B for output, represented as BLUE and WHITE
-        std::vector<size_t> setA, setB;
-        for (size_t i = 0; i < numVertices; ++i) {
-            if (color[i] == 0) setA.push_back(i);  // BLUE
-            else if (color[i] == 1) setB.push_back(i);  // WHITE
-        }
-
-        std::stringstream result;
-        result << "The graph is bipartite: A={";
-        for (size_t i = 0; i < setA.size(); i++) {
-            result << setA[i];
-            if (i < setA.size() - 1) result << ",";
-        }
-        result << "}, B={";
-        for (size_t i = 0; i < setB.size(); i++) {
-            result << setB[i];
-            if (i < setB.size() - 1) result << ",";
-        }
-        result << "}";
-        return result.str();
     }
 
+    // Collect vertices based on colors to form two sets
+    vector<size_t> setA, setB;
+    for (size_t i = 0; i < numVertices; ++i) {
+        if (color[i] == 0) setA.push_back(i);
+        else setB.push_back(i);
+    }
+
+    // Prepare the result string
+    stringstream result;
+    result << "The graph is bipartite: A={";
+    for (size_t i = 0; i < setA.size(); i++) {
+        result << setA[i];
+        if (i < setA.size() - 1) result << ",";
+    }
+    result << "}, B={";
+    for (size_t i = 0; i < setB.size(); i++) {
+        result << setB[i];
+        if (i < setB.size() - 1) result << ",";
+    }
+    result << "}";
+    return result.str();
+}
 
     bool Algorithms::dfsCheck(Graph& graph, size_t u, std::vector<int>& color, int col) {
-        color[u] = col;  // Color the vertex
+        if (color[u] != -1) {
+        // If already colored, check for color conflict
+        return color[u] == col;
+    }
 
-        for (size_t v = 0; v < graph.getNumVertices(); ++v) {
-            if (graph.getAdjacencyMatrix()[u][v] == 0 && u != v) {  // Check for non-edge
-                if (color[v] == -1) {   // If vertex v is not colored
-                    color[v] = col;     // Color the same as u
-                    if (!dfsCheck(graph, v, color, col)) {
-                        return false;
-                    }
-                }
-            } else if (graph.getAdjacencyMatrix()[u][v] != 0) {  // If there's an actual edge
-                if (color[v] == -1) {
-                    color[v] = 1 - col;  // Assign opposite color
-                    if (!dfsCheck(graph, v, color, 1 - col)) {
-                        return false;
-                    }
-                } else if (color[v] == col) {
-                    return false;
-                }
+    // Color the current vertex
+    color[u] = col;
+
+    // Check all adjacent vertices
+    for (size_t v = 0; v < graph.getNumVertices(); ++v) {
+        if (graph.getAdjacencyMatrix()[u][v] != 0) {  // There's an edge from u to v
+            // Try to color the adjacent vertex with the opposite color
+            if (!dfsCheck(graph, v, color, 1 - col)) {
+                return false;
             }
         }
-        return true;
+        if (graph.getAdjacencyMatrix()[v][u] != 0) {  // Check reverse direction for undirected graphs
+            if (!dfsCheck(graph, v, color, 1 - col)) {
+                return false;
+            }
+        }
     }
+    return true;
+}
     
 
 
@@ -195,7 +196,7 @@ namespace ariel {
     vector<size_t> parent(numVertices, numeric_limits<size_t>::max());
     bool hasNegativeCycle = false;
 
-        // Part 1: Check for negative self-loops
+    // Part 1: Check for negative self-loops
     for (size_t u = 0; u < numVertices; u++) {
         if (graph.getAdjacencyMatrix()[u][u] < 0) {
             hasNegativeCycle = true;
@@ -217,68 +218,57 @@ namespace ariel {
         }
     }
 
-    // Part 3: Relax edges V times to find negative cycles with distance greater than one edge
-    for (size_t i = 0; i < numVertices; i++) {
-        for (size_t u = 0; u < numVertices; u++) {
-            for (size_t v = 0; v < numVertices; v++) {
-                int weight = graph.getAdjacencyMatrix()[u][v];
-                if (weight != 0 && distance[u] + weight < distance[v]) {
-                    distance[v] = distance[u] + weight;
-                    parent[v] = u;
+    // Part 3: Use bellmanFordShortestPath to detect negative cycles with distance greater than one edge
+    for (size_t start = 0; start < numVertices; ++start) {
+        distance.assign(numVertices, numeric_limits<int>::max());
+        parent.assign(numVertices, numeric_limits<size_t>::max());
+        distance[start] = 0;
 
-                    // Check for negative cycle
-                    if (i == numVertices - 1) {
-                        hasNegativeCycle = true;
+        for (int i = 0; i < numVertices - 1; i++) {
+            for (size_t u = 0; u < numVertices; u++) {
+                for (size_t v = 0; v < numVertices; v++) {
+                    int weight = graph.getAdjacencyMatrix()[u][v];
+                    if (weight != 0 && distance[u] != numeric_limits<int>::max() && distance[u] + weight < distance[v]) {
+                        if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[u] != v)) {
+                            distance[v] = distance[u] + weight;
+                            parent[v] = u;
+                        }
                     }
                 }
             }
         }
-    }
 
-    // Part 4: If a negative cycle is found, trace back the cycle and format the cycle string
-    if (hasNegativeCycle) {
-        size_t startVertex = 0;
+        for (size_t u = 0; u < numVertices; u++) {
+            for (size_t v = 0; v < numVertices; v++) {
+                int weight = graph.getAdjacencyMatrix()[u][v];
+                if (weight != 0 && distance[u] != numeric_limits<int>::max() && distance[u] + weight < distance[v]) {
+                    if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[u] != v)) {
+                        hasNegativeCycle = true;
+                        size_t current = v;
+                        vector<size_t> cycle;
 
-        // Find a vertex that is part of the negative cycle
-        for (size_t v = 0; v < numVertices; v++) {
-            if (parent[v] != numeric_limits<size_t>::max()) {
-                startVertex = v;
+                        while (current != numeric_limits<size_t>::max()) {
+                            cycle.push_back(current);
+                            current = parent[current];
+                            if (find(cycle.begin(), cycle.end(), current) != cycle.end()) {
+                                cycle.push_back(current);
+                                break;
+                            }
+                        }
+
+                        stringstream cycleString;
+                        cycleString << cycle.back();
+                        for (size_t i = cycle.size() - 2; i != static_cast<size_t>(-1); --i) {   ///here is the problem
+                            cycleString << "->" << cycle[i];
+                        }
+
+                        return cycleString.str();
+                    }
+                }
+            }
+            if (hasNegativeCycle) {
                 break;
             }
-        }
-
-        vector<size_t> cycle;
-        unordered_set<size_t> visited;
-        size_t current = startVertex;
-
-        // Trace back to find the cycle
-        while (visited.find(current) == visited.end()) {
-            visited.insert(current);
-            cycle.push_back(current);
-            current = parent[current];
-        }
-        cycle.push_back(current);
-
-        // Check if the cycle involves vertices with the same weight
-        bool isValidCycle = false;
-        for (size_t i = 0; i < cycle.size() - 1; i++) {
-            size_t u = cycle[i];
-            size_t v = cycle[i + 1];
-            if (graph.getAdjacencyMatrix()[u][v] != graph.getAdjacencyMatrix()[v][u]) {
-                isValidCycle = true;
-                break;
-            }
-        }
-
-        if (isValidCycle) {
-            // Format the cycle string
-            stringstream cycleString;
-            cycleString << cycle[cycle.size() - 1];
-            for (size_t i = cycle.size() - 2; i > 0; i--) {
-                cycleString << "->" << cycle[i];
-            }
-
-            return cycleString.str();
         }
     }
 
