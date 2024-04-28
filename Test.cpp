@@ -658,8 +658,34 @@ TEST_CASE("Test invalid graph: non-square matrix") {
     CHECK_THROWS(g.loadGraph(invalidGraph));
 }
 
+TEST_CASE("Test Sp: UNDI"){
+    vector<vector<int>> G = {
+        {0, 2, 4, 0, 0, 0},
+        {2, 0, 1, 7, 0, 0},
+        {4, 1, 0, 0, 3, 0},
+        {0, 7, 0, 0, 2, 1},
+        {0, 0, 3, 2, 0, 5},
+        {0, 0, 0, 1, 5, 0}};
+    g.loadGraph(G);
+    CHECK(ariel::Algorithms::shortestPath(g, 0, 5) == "0->1->2->4->3->5");
+    CHECK(ariel::Algorithms::shortestPath(g, 1, 4) == "1->2->4");
+    CHECK(ariel::Algorithms::shortestPath(g, 2, 3) == "2->4->3");
+    CHECK(ariel::Algorithms::shortestPath(g, 5, 0) == "5->3->4->2->1->0");
+}
 
-
+TEST_CASE("Test Sp: UNDI11111111"){
+    vector<vector<int>> G = {
+        {0, -2, 4, 0, 0},
+        {-2, 0, 3, 2, 2},
+        {4, 3, 0, 5, 0},
+        {0, 2, 5, 0, 0},
+        {0, 2, 0, 0, 0}};
+    g.loadGraph(G);
+    CHECK(ariel::Algorithms::shortestPath(g, 0, 3) == "0->1->3");
+    CHECK(ariel::Algorithms::shortestPath(g, 1, 4) == "1->4");
+    CHECK(ariel::Algorithms::shortestPath(g, 2, 4) == "2->0->1->4");
+    CHECK(ariel::Algorithms::shortestPath(g, 3, 0) == "3->1->0");
+}
 
 
 

@@ -367,50 +367,53 @@ namespace ariel {
 
     string Algorithms::bellmanFordShortestPath(Graph& graph, size_t start, size_t end) {
         size_t numVertices = graph.getNumVertices();
-        vector<int> distance(numVertices, numeric_limits<int>::max());
-        vector<size_t> parent(numVertices, numeric_limits<size_t>::max());
+    vector<int> distance(numVertices, numeric_limits<int>::max());
+    vector<size_t> parent(numVertices, numeric_limits<size_t>::max());
 
-        distance[start] = 0;
+    distance[start] = 0;
 
-        // Relax edges V-1 times
-        for (int i = 0; i < numVertices - 1; i++) {
-            for (size_t u = 0; u < numVertices; u++) {
-                for (size_t v = 0; v < numVertices; v++) {
-                    int weight = graph.getAdjacencyMatrix()[u][v];
-                    if (weight != 0 && distance[u] != numeric_limits<int>::max() && distance[u] + weight < distance[v]) {
+    // Relax edges V-1 times
+    for (int i = 0; i < numVertices - 1; i++) {
+        for (size_t u = 0; u < numVertices; u++) {
+            for (size_t v = 0; v < numVertices; v++) {
+                int weight = graph.getAdjacencyMatrix()[u][v];
+                if (weight != 0 && distance[u] != numeric_limits<int>::max() && distance[u] + weight < distance[v]) {
+                    if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[u] != v)) {
                         distance[v] = distance[u] + weight;
                         parent[v] = u;
                     }
                 }
             }
         }
+    }
 
-        // Check for negative cycle on the V-th iteration
-        for (size_t u = 0; u < numVertices; u++) {
-            for (size_t v = 0; v < numVertices; v++) {
-                int weight = graph.getAdjacencyMatrix()[u][v];
-                if (weight != 0 && distance[u] != numeric_limits<int>::max() && distance[u] + weight < distance[v]) {
+    // Check for negative cycle on the V-th iteration
+    for (size_t u = 0; u < numVertices; u++) {
+        for (size_t v = 0; v < numVertices; v++) {
+            int weight = graph.getAdjacencyMatrix()[u][v];
+            if (weight != 0 && distance[u] != numeric_limits<int>::max() && distance[u] + weight < distance[v]) {
+                if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[u] != v)) {
                     return "Graph contains a negative cycle";
                 }
             }
         }
-
-        if (distance[end] == numeric_limits<int>::max()) {
-            return "No path exists between " + to_string(start) + " and " + to_string(end);
-        }
-
-        // Reconstruct the shortest path
-        string path;
-        size_t current = end;
-        while (current != start) {
-            path = "->" + to_string(current) + path;
-            current = parent[current];
-        }
-        path = to_string(start) + path;
-
-        return path;
     }
 
+    if (distance[end] == numeric_limits<int>::max()) {
+        return "No path exists between " + to_string(start) + " and " + to_string(end);
+    }
+
+    // Reconstruct the shortest path
+    string path;
+    size_t current = end;
+    while (current != start) {
+        path = "->" + to_string(current) + path;
+        current = parent[current];
+    }
+    path = to_string(start) + path;
+
+    return path;
+}
 
 
     string Algorithms::dijkstraShortestPath(Graph& graph, size_t start, size_t end) {
