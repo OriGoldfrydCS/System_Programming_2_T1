@@ -31,11 +31,11 @@ namespace ariel {
         bfs(graph, 0, visited);                     // Perform BFS starting from vertex 0
 
         // If any vertex was not visited, the graph is not connected
-        for (bool v : visited) 
+        for (size_t i = 0; i < numVertices; i++) 
         {
-            if (!v) 
+            if (!visited[i]) 
             {
-                return false;
+                return false; 
             }
         }
 
@@ -65,10 +65,11 @@ namespace ariel {
             bfs(graph, startVertex, visited);
 
             // If any vertex was not visited, the graph is not strongly connected
-            for (bool v : visited) 
+            for (size_t i = 0; i < numVertices; i++) 
             {
-                if (!v) {
-                    return false;
+                if (!visited[i]) 
+                {
+                    return false; 
                 }
             }
         }
@@ -113,19 +114,17 @@ namespace ariel {
         {
             return bfsShortestPath(graph, start, end);
         } 
-        else 
-        {
-            bool hasNegativeEdges = hasNegativeEdgesInGraph(graph);     // Check if the graph has negative edges to choose the relevant algorithm
+        
+        bool hasNegativeEdges = hasNegativeEdgesInGraph(graph);     // Check if the graph has negative edges to choose the relevant algorithm
 
-            if (hasNegativeEdges) 
-            {
-                return bellmanFordShortestPath(graph, start, end);
-            } 
-            else 
-            {
-                return dijkstraShortestPath(graph, start, end);        
-            }
-        }
+        if (hasNegativeEdges) 
+        {
+            return bellmanFordShortestPath(graph, start, end);
+        } 
+    
+        return dijkstraShortestPath(graph, start, end);        
+        
+        
     }
 
      /**
@@ -218,7 +217,7 @@ namespace ariel {
     {
         size_t numVertices = graph.getNumVertices();        // A variable to store the number of vertices in t he graph   
         vector<int> distance(numVertices, 0);               // Initialize distance vector with zeros
-        vector<size_t> parent(numVertices, INT_MAX);        // Initialize parent vector with INT_MAX. This vector will use us to reconstruct paths and detect cycles
+        vector<size_t> parent(numVertices, INT_MAX);        // Initialize parent vector with INT_MAX. This vector will use us to build paths and detect cycles
         bool hasNegativeCycle = false;                      // A flag to detect if there is a negative cycle
 
         // Part 1: Check for negative self-loops
@@ -345,7 +344,7 @@ namespace ariel {
         }
 
         // Build the shortest path
-        string path = reconstructPath(start, end, parent);
+        string path = buildPath(start, end, parent);
 
         return path;
     }
@@ -419,65 +418,109 @@ namespace ariel {
         }
 
         // Build the shortest path
-        string path = reconstructPath(start, end, parent);
+        string path = buildPath(start, end, parent);
 
         return path;
     }
 
 
-    string Algorithms::dijkstraShortestPath(Graph& graph, size_t start, size_t end) {
-        size_t numVertices = graph.getNumVertices();
-        vector<int> distance(numVertices, INT_MAX);
-        vector<size_t> parent(numVertices, INT_MAX);
-        vector<bool> visited(numVertices, false);
+
+    /**
+     * @brief This auxiliary function finds the shortest path between two vertices using Dijkstra's algorithm.
+     * 
+     * Dijkstra's algorithm is used for finding the shortest path from a single source vertex
+     * to a single destination vertex in a graph with non-negative edge weights.
+     *
+     * @param graph The graph.
+     * @param start The index of the start vertex.
+     * @param end The index of the end vertex.
+     * @return A string representing the shortest path or a message indicating no path exists.
+     */
+    string Algorithms::dijkstraShortestPath(Graph& graph, size_t start, size_t end) 
+    {
+        size_t numVertices = graph.getNumVertices();    // A variable to store the number of vertices in the graph
+        vector<int> distance(numVertices, INT_MAX);     // Initialize distance vector to infinity
+        vector<size_t> parent(numVertices, INT_MAX);    // Initialize parent vector for path building
+        vector<bool> visited(numVertices, false);       // Initialize visited vector to Keep track of visited nodes to avoid revisiting
 
         distance[start] = 0;
 
-        for (size_t i = 0; i < numVertices; i++) {
+        // Find the unvisited vertex with the smallest distance
+        for (size_t i = 0; i < numVertices; i++) 
+        {
             size_t minVertex = findMinDistanceVertex(distance, visited);
 
-            if (minVertex == INT_MAX) {
+            // If no vertex is found break from the loop, since the start is not connected to any vertex
+            if (minVertex == INT_MAX) 
+            {
                 break;
             }
 
-            visited[minVertex] = true;
+            visited[minVertex] = true;      // Mark the currect vertex as visited
 
-            for (size_t v = 0; v < numVertices; v++) {
-                int weight = graph.getAdjacencyMatrix()[minVertex][v];
+            for (size_t v = 0; v < numVertices; v++) 
+            {
+                int weight = graph.getAdjacencyMatrix()[minVertex][v];                  // A variable to store the weight of the edge minVertex->v
+                // Relax the edge
                 if (weight != 0 && !visited[v] && distance[minVertex] != INT_MAX &&
-                    distance[minVertex] + weight < distance[v]) {
-                    distance[v] = distance[minVertex] + weight;
-                    parent[v] = minVertex;
+                distance[minVertex] + weight < distance[v]) 
+                {
+                    distance[v] = distance[minVertex] + weight;     // Update the distance to vertex v
+                    parent[v] = minVertex;                          // Set minVertex as the parent of v
                 }
             }
         }
 
-        if (distance[end] == INT_MAX) {
+        // Check if the end point is reachable
+        if (distance[end] == INT_MAX) 
+        {
             return "No path exists between " + to_string(start) + " and " + to_string(end);
         }
 
-        // Reconstruct the shortest path
-        string path = reconstructPath(start, end, parent);
+        // Build the shortest path
+        string path = buildPath(start, end, parent);
 
         return path;
     }
 
-    string Algorithms::dfs_cycle(Graph& graph, size_t v, vector<bool>& visited, vector<size_t>& parent, size_t start) {
+
+
+    /**
+     * @brief This auxiliary function uses DFS to detect a cycle in the graph starting from a given vertex.
+     *
+     * @param graph The graph.
+     * @param v The starting vertex for DFS.
+     * @param visited A vector to keep track of visited vertices.
+     * @param parent A vector to keep track of the parents of each vertex.
+     * @param start The original starting vertex for cycle detection.
+     * @return A string representing the cycle or an empty string if no cycle is found.
+     */
+    string Algorithms::dfs_cycle(Graph& graph, size_t v, vector<bool>& visited, vector<size_t>& parent, size_t start) 
+    {
         visited[v] = true;
 
-        for (size_t i = 0; i < graph.getNumVertices(); i++) {
-            if (graph.getAdjacencyMatrix()[v][i] != 0) {
-                if (!visited[i]) {
-                    parent[i] = v;
-                    string cycle = dfs_cycle(graph, i, visited, parent, start);
-                    if (!cycle.empty()) {
+        for (size_t i = 0; i < graph.getNumVertices(); i++) 
+        {
+            if (graph.getAdjacencyMatrix()[v][i] != 0)      // Check if there is an edge v->i
+            {
+                if (!visited[i]) 
+                {
+                    parent[i] = v;                                                  // Set the parent of vertex i to v
+                    string cycle = dfs_cycle(graph, i, visited, parent, start);     // Recurse into vertex i
+                    
+                    // Check if a cycle is detected in recursion, and if so - return it
+                    if (!cycle.empty()) 
+                    {
                         return cycle;
                     }
-                } else if (i != parent[v] && i == start) {
-                    // Found a cycle
+                } 
+                else if (i != parent[v] && i == start) 
+                {
+                    // Found a cycle returning to the start vertex
                     string cycle = to_string(i);
                     size_t current = v;
-                    while (current != i) {
+                    while (current != i) 
+                    {
                         cycle = to_string(current) + "->" + cycle;
                         current = parent[current];
                     }
@@ -487,28 +530,80 @@ namespace ariel {
             }
         }
 
+        // Return empty if no cycle is found
         return "";
     }
 
-    bool Algorithms::dfsCheck(Graph& graph, size_t u, vector<int>& color, int col) {
-        if (color[u] != -1) {
-            // If already colored, check for color conflict
-            return color[u] == col;
+
+    /**
+     * @brief This auxiliary function checks if a graph is bipartite using DFS by trying to color it with 2-colors.
+     * 
+     * A graph is bipartite if it can be colored using two colors such that no two adjacent vertices
+     * share the same color.
+     *
+     * @param graph The graph to check.
+     * @param currectVertex The vertex to start coloring.
+     * @param colorVec A vector storing the color of each vertex, initialized to -1 (uncolored).
+     * @param color The current color to use (0 or 1).
+     * @return true if the graph can be colored bipartitely; otherwise, false.
+     */
+    bool Algorithms::dfsCheck(Graph& graph, size_t currectVertex, vector<int>& colorVec, int color) 
+    {
+        if (colorVec[currectVertex] != -1) 
+        {
+            return colorVec[currectVertex] == color;       // Check if the currect vertex is colored correctly
         }
 
         // Color the current vertex
-        color[u] = col;
+        colorVec[currectVertex] = color;
 
-        // Check all adjacent vertices
-        for (size_t v = 0; v < graph.getNumVertices(); ++v) {
-            if (graph.getAdjacencyMatrix()[u][v] != 0) {  // There's an edge from u to v
-                // Try to color the adjacent vertex with the opposite color
-                if (!dfsCheck(graph, v, color, 1 - col)) {
+        // Check all adjacent vertices for a valid coloring
+        for (size_t v = 0; v < graph.getNumVertices(); v++) 
+        {
+            // There's an edge from u to v
+            if (graph.getAdjacencyMatrix()[currectVertex][v] != 0)      
+            {  
+                // Color the adjacent vertex with the opposite color, and return false is contradiction discovered
+                if (!dfsCheck(graph, v, colorVec, 1 - color)) 
+                {
                     return false;
                 }
             }
-            if (graph.getAdjacencyMatrix()[v][u] != 0) {  // Check reverse direction for undirected graphs
-                if (!dfsCheck(graph, v, color, 1 - col)) {
+
+            // Check reverse direction for undirected graphs
+            if (graph.getAdjacencyMatrix()[v][currectVertex] != 0) 
+            {  
+                // Color the adjacent vertex with the opposite color, and return false is contradiction discovered
+                if (!dfsCheck(graph, v, colorVec, 1 - color)) 
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @brief This auxiliary function checks if a graph is unweighted.
+     * 
+     * This function checks if all the edges in the graph have weights of either 0 or 1,
+     *
+     * @param graph The graph to be checked.
+     * @return true if the graph is unweighted, false otherwise.
+     */
+    bool Algorithms::isGraphUnweighted(Graph& graph) 
+    {
+        size_t numVertices = graph.getNumVertices();
+
+        // Iterate over all pairs of vertices
+        for (size_t i = 0; i < numVertices; i++) 
+        {
+            for (size_t j = 0; j < numVertices; j++) 
+            {
+                // Check if the weight is neither 0 nor 1
+                if (graph.getAdjacencyMatrix()[i][j] != 0 && graph.getAdjacencyMatrix()[i][j] != 1) 
+                {
                     return false;
                 }
             }
@@ -517,23 +612,24 @@ namespace ariel {
     }
 
 
-    bool Algorithms::isGraphUnweighted(Graph& graph) {
+    /**
+     * @brief This auxiliary function checks if a graph contains any negative edges.
+     *
+     *
+     * @param graph The graph to be checked.
+     * @return true if there is at least one negative edge, false otherwise.
+     */
+    bool Algorithms::hasNegativeEdgesInGraph(Graph& graph) 
+    {
         size_t numVertices = graph.getNumVertices();
-        for (size_t i = 0; i < numVertices; i++) {
-            for (size_t j = 0; j < numVertices; j++) {
-                if (graph.getAdjacencyMatrix()[i][j] != 0 && graph.getAdjacencyMatrix()[i][j] != 1) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
 
-    bool Algorithms::hasNegativeEdgesInGraph(Graph& graph) {
-        size_t numVertices = graph.getNumVertices();
+        // Iterate over all pairs of vertices
         for (size_t i = 0; i < numVertices; i++) {
-            for (size_t j = 0; j < numVertices; j++) {
-                if (graph.getAdjacencyMatrix()[i][j] < 0) {
+            for (size_t j = 0; j < numVertices; j++) 
+            {
+                // Check if the weight of the edge is negative
+                if (graph.getAdjacencyMatrix()[i][j] < 0) 
+                {
                     return true;
                 }
             }
@@ -542,17 +638,27 @@ namespace ariel {
     }
     
 
-    string Algorithms::reconstructPath(size_t start, size_t end, vector<size_t>& parent) {
+    /**
+     * @brief This auxiliary function builds the path from the start vertex to the end vertex.
+     *
+     * @param start The start vertex of the path.
+     * @param end The end vertex of the path.
+     * @param parent The vector containing each vertex's parent in the path.
+     * @return A string representing the path or an empty string if no path exists.
+     */
+    string Algorithms::buildPath(size_t start, size_t end, vector<size_t>& parent) {
         string path;
         size_t current = end;
 
         // If no path exists from start to end, return an empty string
-        if (parent[current] == INT_MAX) {
+        if (parent[current] == INT_MAX) 
+        {
             return "";
         }
 
         // Traverse backwards from end to start using the parent vector
-        while (current != start) {
+        while (current != start) 
+        {
             path = "->" + to_string(current) + path;
             current = parent[current];
         }
@@ -563,12 +669,26 @@ namespace ariel {
         return path;
     }
 
+
+    /**
+     * @brief This auxiliary function finds the vertex with the minimum distance that has not been visited yet.
+     * 
+     * This is a function used by Dijkstra's algorithm to select the next vertex to visit.
+     *
+     * @param distance A vector of distances from the start vertex.
+     * @param visited A vector indicating whether each vertex has been visited.
+     * @return The index of the vertex with the smallest distance that has not been visited.
+     */
     size_t Algorithms::findMinDistanceVertex(vector<int>& distance, vector<bool>& visited) {
         size_t minVertex = INT_MAX;
-        int minDistance = INT_MAX;
+        int minDistance = INT_MAX;          // We will start with the largest possible distance
 
-        for (size_t v = 0; v < distance.size(); v++) {
-            if (!visited[v] && distance[v] < minDistance) {
+        // Iterate through all vertices
+        for (size_t v = 0; v < distance.size(); v++) 
+        {
+            // Update the vertex with the minimum distance that has not been visited
+            if (!visited[v] && distance[v] < minDistance) 
+            {
                 minVertex = v;
                 minDistance = distance[v];
             }
@@ -578,6 +698,12 @@ namespace ariel {
     }
 
 
+    /**
+     * @brief This auxiliary function builds a string representation of a set of vertices.
+     *
+     * @param set A vector containing the indices of vertices in the set.
+     * @return A string representation of the set.
+     */
     string Algorithms::buildSet(const vector<size_t>& set) 
     {
         string result = "{";
@@ -594,23 +720,43 @@ namespace ariel {
     }
 
 
-    string Algorithms::detectNegativeCycle(Graph& graph) {
+    /**
+     * @brief This auxiliary function finds a negative cycle (if exists) in a graph using a modified Bellman-Ford algorithm.
+     * 
+     * This function attempts to detect a negative cycle by relaxing edges repeatedly and checking
+     * for changes in the shortest path estimate that indicate a cycle.
+     *
+     * @param graph The graph in which to detect negative cycles.
+     * @return A string describing the cycle if found, or a message indicating no cycle exists.
+     */
+    string Algorithms::detectNegativeCycle(Graph& graph) 
+    {
         size_t numVertices = graph.getNumVertices();
         vector<int> distance(numVertices, 0);
         vector<size_t> parent(numVertices, INT_MAX);
         bool hasNegativeCycle = false;
 
-        for (size_t start = 0; start < numVertices; ++start) {
-            distance.assign(numVertices, INT_MAX);
-            parent.assign(numVertices, INT_MAX);
-            distance[start] = 0;
+        // Check each vertex as a potential start point
+        for (size_t start = 0; start < numVertices; start++) 
+        {
+            distance.assign(numVertices, INT_MAX);      // Reset distances to infinity
+            parent.assign(numVertices, INT_MAX);        // Reset parent pointers
+            distance[start] = 0;                        // Distance to self is zero
 
-            for (int i = 0; i < numVertices - 1; i++) {
-                for (size_t u = 0; u < numVertices; u++) {
-                    for (size_t v = 0; v < numVertices; v++) {
+            // Relax edges for all vertices
+            for (int i = 0; i < numVertices - 1; i++) 
+            {
+                for (size_t u = 0; u < numVertices; u++) 
+                {
+                    for (size_t v = 0; v < numVertices; v++) 
+                    {
                         int weight = graph.getAdjacencyMatrix()[u][v];
-                        if (weight != 0 && distance[u] != INT_MAX && distance[u] + weight < distance[v]) {
-                            if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[u] != v)) {
+                        
+                        // Relax the edge if possible
+                        if (weight != 0 && distance[u] != INT_MAX && distance[u] + weight < distance[v]) 
+                        {
+                            if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[u] != v)) 
+                            {
                                 distance[v] = distance[u] + weight;
                                 parent[v] = u;
                             }
@@ -619,36 +765,47 @@ namespace ariel {
                 }
             }
 
-            for (size_t u = 0; u < numVertices; u++) {
-                for (size_t v = 0; v < numVertices; v++) {
+            // Check for cycle on the last iteration
+            for (size_t u = 0; u < numVertices; u++) 
+            {
+                for (size_t v = 0; v < numVertices; v++) 
+                {
                     int weight = graph.getAdjacencyMatrix()[u][v];
-                    if (weight != 0 && distance[u] != INT_MAX && distance[u] + weight < distance[v]) {
-                        if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[u] != v)) {
+                    
+                    // A cycle is found if further relaxation is possible
+                    if (weight != 0 && distance[u] != INT_MAX && distance[u] + weight < distance[v]) 
+                    {
+                        if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[u] != v)) 
+                        {
                             hasNegativeCycle = true;
                             size_t current = v;
                             vector<size_t> cycle;
 
-                            while (current != INT_MAX) {
+                            // Trace back the cycle
+                            while (current != INT_MAX) 
+                            {
                                 cycle.push_back(current);
                                 current = parent[current];
-                                if (find(cycle.begin(), cycle.end(), current) != cycle.end()) {
+                                if (find(cycle.begin(), cycle.end(), current) != cycle.end()) 
+                                {
                                     cycle.push_back(current);
                                     break;
                                 }
                             }
 
-                            stringstream cycleString;
-                            cycleString << cycle.back();
-                            for (size_t i = cycle.size() - 2; i != static_cast<size_t>(-1); i--) {
-                                cycleString << "->" << cycle[i];
+                            string cycleString;
+                            cycleString += to_string(cycle.back());
+                            for (size_t i = cycle.size() - 2; i != static_cast<size_t>(-1); i--) 
+                            {
+                                cycleString += "->" + to_string(cycle[i]);
                             }
-
-                            return cycleString.str();
+                            return cycleString;
                         }
                     }
                 }
 
-                if (hasNegativeCycle) {
+                if (hasNegativeCycle)
+                {
                     break;
                 }
             }
