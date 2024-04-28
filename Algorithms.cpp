@@ -141,11 +141,11 @@ namespace ariel {
         vector<bool> visited(numVertices, false);
         vector<size_t> parent(numVertices, INT_MAX);
 
-        for (size_t v = 0; v < numVertices; v++) 
+        for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
         {
-            if (!visited[v]) 
+            if (!visited[vertex_v]) 
             {
-                string cycle = dfs_cycle(graph, v, visited, parent, v);
+                string cycle = dfs_cycle(graph, vertex_v, visited, parent, vertex_v);
                 if (!cycle.empty()) 
                 {
                     return cycle;
@@ -218,32 +218,29 @@ namespace ariel {
         size_t numVertices = graph.getNumVertices();        // A variable to store the number of vertices in t he graph   
         vector<int> distance(numVertices, 0);               // Initialize distance vector with zeros
         vector<size_t> parent(numVertices, INT_MAX);        // Initialize parent vector with INT_MAX. This vector will use us to build paths and detect cycles
-        bool hasNegativeCycle = false;                      // A flag to detect if there is a negative cycle
 
         // Part 1: Check for negative self-loops
-        for (size_t u = 0; u < numVertices; u++) 
+        for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++) 
         {
-            if (graph.getAdjacencyMatrix()[u][u] < 0) 
+            if (graph.getAdjacencyMatrix()[vertex_u][vertex_u] < 0) 
             {
-                hasNegativeCycle = true;
-                return to_string(u) + "->" + to_string(u);
+                return to_string(vertex_u) + "->" + to_string(vertex_u);
             }
         }
 
         // Part 2: Check for negative cycles between neighboring vertices with different edge weights
-        for (size_t u = 0; u < numVertices; u++) 
+        for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++) 
         {
-            for (size_t v = 0; v < numVertices; v++) 
+            for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
             {
                 // Check if there are differing weights in the edges u->v and v->u that sum to a negative value
-                if (u != v && graph.getAdjacencyMatrix()[u][v] != 0 && graph.getAdjacencyMatrix()[v][u] != 0 &&
-                    graph.getAdjacencyMatrix()[u][v] != graph.getAdjacencyMatrix()[v][u]) 
+                if (vertex_u != vertex_v && graph.getAdjacencyMatrix()[vertex_u][vertex_v] != 0 && graph.getAdjacencyMatrix()[vertex_v][vertex_u] != 0 &&
+                    graph.getAdjacencyMatrix()[vertex_u][vertex_v] != graph.getAdjacencyMatrix()[vertex_v][vertex_u]) 
                     {
-                    int weight = graph.getAdjacencyMatrix()[u][v] + graph.getAdjacencyMatrix()[v][u];
+                    int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v] + graph.getAdjacencyMatrix()[vertex_v][vertex_u];
                     if (weight < 0) 
                     {
-                        hasNegativeCycle = true;
-                        return to_string(u) + "->" + to_string(v) + "->" + to_string(u);
+                        return to_string(vertex_u) + "->" + to_string(vertex_v) + "->" + to_string(vertex_u);
                     }
                 }
             }
@@ -372,20 +369,20 @@ namespace ariel {
         // Relax edges V-1 times
         for (int i = 0; i < numVertices - 1; i++) 
         {
-            for (size_t u = 0; u < numVertices; u++) 
+            for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++) 
             {
-                for (size_t v = 0; v < numVertices; v++) 
+                for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
                 {
-                    int weight = graph.getAdjacencyMatrix()[u][v];
+                    int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
                     
                     // Check if there is an edge u->v and if the current path through u is shorter
-                    if (weight != 0 && distance[u] != INT_MAX && distance[u] + weight < distance[v]) 
+                    if ((weight != 0 && distance[vertex_u] != INT_MAX) && (distance[vertex_u] + weight < distance[vertex_v])) 
                     {
                         // Checl if the graph is directed or undirected when v is not the parent of u
-                        if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[u] != v)) 
+                        if ((graph.isGraphDirected()) || (!graph.isGraphDirected() && parent[vertex_u] != vertex_v)) 
                         {
-                            distance[v] = distance[u] + weight;     // Update the distance to vertex v through u
-                            parent[v] = u;                          // Record u as the parent of v
+                            distance[vertex_v] = distance[vertex_u] + weight;     // Update the distance to vertex v through u
+                            parent[vertex_v] = vertex_u;                          // Record u as the parent of v
                         }
                     }
                 }
@@ -393,16 +390,16 @@ namespace ariel {
         }
 
         // Check for negative cycle on the V-th iteration
-        for (size_t u = 0; u < numVertices; u++) 
+        for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++) 
         {
-            for (size_t v = 0; v < numVertices; v++) 
+            for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
             {
-                int weight = graph.getAdjacencyMatrix()[u][v];
+                int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
                 
                 // If an additional relaxation is possible, a negative cycle exists
-                if (weight != 0 && distance[u] != INT_MAX && distance[u] + weight < distance[v]) 
+                if (weight != 0 && distance[vertex_u] != INT_MAX && distance[vertex_u] + weight < distance[vertex_v]) 
                 {
-                    if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[u] != v)) 
+                    if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[vertex_u] != vertex_v)) 
                     {
                         return "Graph contains a negative cycle";
                     }
@@ -458,15 +455,15 @@ namespace ariel {
 
             visited[minVertex] = true;      // Mark the currect vertex as visited
 
-            for (size_t v = 0; v < numVertices; v++) 
+            for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
             {
-                int weight = graph.getAdjacencyMatrix()[minVertex][v];                  // A variable to store the weight of the edge minVertex->v
+                int weight = graph.getAdjacencyMatrix()[minVertex][vertex_v];                  // A variable to store the weight of the edge minVertex->v
                 // Relax the edge
-                if (weight != 0 && !visited[v] && distance[minVertex] != INT_MAX &&
-                distance[minVertex] + weight < distance[v]) 
+                if (weight != 0 && !visited[vertex_v] && distance[minVertex] != INT_MAX &&
+                distance[minVertex] + weight < distance[vertex_v]) 
                 {
-                    distance[v] = distance[minVertex] + weight;     // Update the distance to vertex v
-                    parent[v] = minVertex;                          // Set minVertex as the parent of v
+                    distance[vertex_v] = distance[minVertex] + weight;     // Update the distance to vertex v
+                    parent[vertex_v] = minVertex;                          // Set minVertex as the parent of v
                 }
             }
         }
@@ -489,23 +486,23 @@ namespace ariel {
      * @brief This auxiliary function uses DFS to detect a cycle in the graph starting from a given vertex.
      *
      * @param graph The graph.
-     * @param v The starting vertex for DFS.
+     * @param vertex The starting vertex for DFS.
      * @param visited A vector to keep track of visited vertices.
      * @param parent A vector to keep track of the parents of each vertex.
      * @param start The original starting vertex for cycle detection.
      * @return A string representing the cycle or an empty string if no cycle is found.
      */
-    string Algorithms::dfs_cycle(Graph& graph, size_t v, vector<bool>& visited, vector<size_t>& parent, size_t start) 
+    string Algorithms::dfs_cycle(Graph& graph, size_t vertex, vector<bool>& visited, vector<size_t>& parent, size_t start) 
     {
-        visited[v] = true;
+        visited[vertex] = true;
 
         for (size_t i = 0; i < graph.getNumVertices(); i++) 
         {
-            if (graph.getAdjacencyMatrix()[v][i] != 0)      // Check if there is an edge v->i
+            if (graph.getAdjacencyMatrix()[vertex][i] != 0)      // Check if there is an edge v->i
             {
                 if (!visited[i]) 
                 {
-                    parent[i] = v;                                                  // Set the parent of vertex i to v
+                    parent[i] = vertex;                                                  // Set the parent of vertex i to v
                     string cycle = dfs_cycle(graph, i, visited, parent, start);     // Recurse into vertex i
                     
                     // Check if a cycle is detected in recursion, and if so - return it
@@ -514,11 +511,11 @@ namespace ariel {
                         return cycle;
                     }
                 } 
-                else if (i != parent[v] && i == start) 
+                else if (i != parent[vertex] && i == start) 
                 {
                     // Found a cycle returning to the start vertex
                     string cycle = to_string(i);
-                    size_t current = v;
+                    size_t current = vertex;
                     while (current != i) 
                     {
                         cycle = to_string(current) + "->" + cycle;
@@ -558,23 +555,23 @@ namespace ariel {
         colorVec[currectVertex] = color;
 
         // Check all adjacent vertices for a valid coloring
-        for (size_t v = 0; v < graph.getNumVertices(); v++) 
+        for (size_t vertex_v = 0; vertex_v < graph.getNumVertices(); vertex_v++) 
         {
             // There's an edge from u to v
-            if (graph.getAdjacencyMatrix()[currectVertex][v] != 0)      
+            if (graph.getAdjacencyMatrix()[currectVertex][vertex_v] != 0)      
             {  
                 // Color the adjacent vertex with the opposite color, and return false is contradiction discovered
-                if (!dfsCheck(graph, v, colorVec, 1 - color)) 
+                if (!dfsCheck(graph, vertex_v, colorVec, 1 - color)) 
                 {
                     return false;
                 }
             }
 
             // Check reverse direction for undirected graphs
-            if (graph.getAdjacencyMatrix()[v][currectVertex] != 0) 
+            if (graph.getAdjacencyMatrix()[vertex_v][currectVertex] != 0) 
             {  
                 // Color the adjacent vertex with the opposite color, and return false is contradiction discovered
-                if (!dfsCheck(graph, v, colorVec, 1 - color)) 
+                if (!dfsCheck(graph, vertex_v, colorVec, 1 - color)) 
                 {
                     return false;
                 }
@@ -684,13 +681,13 @@ namespace ariel {
         int minDistance = INT_MAX;          // We will start with the largest possible distance
 
         // Iterate through all vertices
-        for (size_t v = 0; v < distance.size(); v++) 
+        for (size_t vertex_v = 0; vertex_v < distance.size(); vertex_v++) 
         {
             // Update the vertex with the minimum distance that has not been visited
-            if (!visited[v] && distance[v] < minDistance) 
+            if (!visited[vertex_v] && distance[vertex_v] < minDistance) 
             {
-                minVertex = v;
-                minDistance = distance[v];
+                minVertex = vertex_v;
+                minDistance = distance[vertex_v];
             }
         }
 
@@ -734,7 +731,6 @@ namespace ariel {
         size_t numVertices = graph.getNumVertices();
         vector<int> distance(numVertices, 0);
         vector<size_t> parent(numVertices, INT_MAX);
-        bool hasNegativeCycle = false;
 
         // Check each vertex as a potential start point
         for (size_t start = 0; start < numVertices; start++) 
@@ -746,19 +742,19 @@ namespace ariel {
             // Relax edges for all vertices
             for (int i = 0; i < numVertices - 1; i++) 
             {
-                for (size_t u = 0; u < numVertices; u++) 
+                for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++) 
                 {
-                    for (size_t v = 0; v < numVertices; v++) 
+                    for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
                     {
-                        int weight = graph.getAdjacencyMatrix()[u][v];
+                        int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
                         
                         // Relax the edge if possible
-                        if (weight != 0 && distance[u] != INT_MAX && distance[u] + weight < distance[v]) 
+                        if (weight != 0 && distance[vertex_u] != INT_MAX && distance[vertex_u] + weight < distance[vertex_v]) 
                         {
-                            if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[u] != v)) 
+                            if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[vertex_u] != vertex_v)) 
                             {
-                                distance[v] = distance[u] + weight;
-                                parent[v] = u;
+                                distance[vertex_v] = distance[vertex_u] + weight;
+                                parent[vertex_v] = vertex_u;
                             }
                         }
                     }
@@ -766,19 +762,18 @@ namespace ariel {
             }
 
             // Check for cycle on the last iteration
-            for (size_t u = 0; u < numVertices; u++) 
+            for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++) 
             {
-                for (size_t v = 0; v < numVertices; v++) 
+                for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
                 {
-                    int weight = graph.getAdjacencyMatrix()[u][v];
+                    int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
                     
                     // A cycle is found if further relaxation is possible
-                    if (weight != 0 && distance[u] != INT_MAX && distance[u] + weight < distance[v]) 
+                    if (weight != 0 && distance[vertex_u] != INT_MAX && distance[vertex_u] + weight < distance[vertex_v]) 
                     {
-                        if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[u] != v)) 
+                        if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[vertex_u] != vertex_v)) 
                         {
-                            hasNegativeCycle = true;
-                            size_t current = v;
+                            size_t current = vertex_v;
                             vector<size_t> cycle;
 
                             // Trace back the cycle
@@ -802,11 +797,6 @@ namespace ariel {
                             return cycleString;
                         }
                     }
-                }
-
-                if (hasNegativeCycle)
-                {
-                    break;
                 }
             }
         }
