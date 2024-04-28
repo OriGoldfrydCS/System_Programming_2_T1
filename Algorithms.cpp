@@ -258,7 +258,7 @@ namespace ariel {
 
                         stringstream cycleString;
                         cycleString << cycle.back();
-                        for (size_t i = cycle.size() - 2; i != static_cast<size_t>(-1); --i) {   ///here is the problem
+                        for (size_t i = cycle.size() - 2; i != static_cast<size_t>(-1); i--) {   ///here is the problem
                             cycleString << "->" << cycle[i];
                         }
 
