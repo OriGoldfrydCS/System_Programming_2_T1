@@ -1,3 +1,6 @@
+// ID: 200661775
+// Email: origoldbsc@gmail.com
+
 #include "Algorithms.hpp"
 #include <queue>
 #include <sstream>
@@ -358,68 +361,112 @@ namespace ariel {
      * @param end The destination vertex.
      * @return A string representing the path or an error message if a negative cycle is detected.
      */
-    string Algorithms::bellmanFordShortestPath(Graph& graph, size_t start, size_t end) 
+    string Algorithms::bellmanFordShortestPath(Graph& graph, size_t start, size_t end)
     {
         size_t numVertices = graph.getNumVertices();
         vector<int> distance(numVertices, INT_MAX);
         vector<size_t> parent(numVertices, INT_MAX);
-
         distance[start] = 0;
 
         // Relax edges V-1 times
-        for (int i = 0; i < numVertices - 1; i++) 
+        for (int i = 0; i < numVertices - 1; i++)
         {
-            for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++) 
-            {
-                for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
-                {
-                    int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
-                    
-                    // Check if there is an edge u->v and if the current path through u is shorter
-                    if ((weight != 0 && distance[vertex_u] != INT_MAX) && (distance[vertex_u] + weight < distance[vertex_v])) 
-                    {
-                        // Checl if the graph is directed or undirected when v is not the parent of u
-                        if ((graph.isGraphDirected()) || (!graph.isGraphDirected() && parent[vertex_u] != vertex_v)) 
-                        {
-                            distance[vertex_v] = distance[vertex_u] + weight;     // Update the distance to vertex v through u
-                            parent[vertex_v] = vertex_u;                          // Record u as the parent of v
-                        }
-                    }
-                }
-            }
+            relaxEdges(graph, distance, parent);
         }
 
         // Check for negative cycle on the V-th iteration
-        for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++) 
+        if (hasNegativeCycle(graph, distance, parent))
         {
-            for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
-            {
-                int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
-                
-                // If an additional relaxation is possible, a negative cycle exists
-                if (weight != 0 && distance[vertex_u] != INT_MAX && distance[vertex_u] + weight < distance[vertex_v]) 
-                {
-                    if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[vertex_u] != vertex_v)) 
-                    {
-                        return "Graph contains a negative cycle";
-                    }
-                }
-            }
+            return "Graph contains a negative cycle";
         }
 
-
         // Check if the distance from start to end remains infinity
-        if (distance[end] == INT_MAX) 
+        if (distance[end] == INT_MAX)
         {
             return "No path exists between " + to_string(start) + " and " + to_string(end);
         }
 
         // Build the shortest path
         string path = buildPath(start, end, parent);
-
         return path;
     }
+    
 
+    /**
+     * @brief This auxiliary function relaxes the edges in the graph during the shortest path process.
+     *
+     * @param graph The graph on which the edges are relaxed.
+     * @param distance The vector storing the distances from the source vertex to each vertex.
+     * @param parent The vector storing the parent of each vertex in the shortest path tree.
+     */
+    void Algorithms::relaxEdges(Graph& graph, vector<int>& distance, vector<size_t>& parent)
+    {
+        size_t numVertices = graph.getNumVertices();
+        for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++)
+        {
+            for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++)
+            {
+                int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
+                // Check if there is an edge u->v and if the current path through u is shorter
+                if (canRelax(graph, vertex_u, vertex_v, weight, distance, parent))
+                {
+                    distance[vertex_v] = distance[vertex_u] + weight; // Update the distance to vertex v through u
+                    parent[vertex_v] = vertex_u; // Record u as the parent of v
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief This auxiliary function checks if an edge can be relaxed.
+     *
+     * @param graph The graph containing the edge.
+     * @param vertex_u The source vertex of the edge.
+     * @param vertex_v The destination vertex of the edge.
+     * @param weight The weight of the edge.
+     * @param distance The vector storing the distances from the source vertex to each vertex.
+     * @param parent The vector storing the parent of each vertex in the shortest path tree.
+     * @return true if the edge can be relaxed, false otherwise.
+     */
+    bool Algorithms::canRelax(Graph& graph, size_t vertex_u, size_t vertex_v, int weight, vector<int>& distance, vector<size_t>& parent)
+    {
+        if (weight != 0 && distance[vertex_u] != INT_MAX && distance[vertex_u] + weight < distance[vertex_v])
+        {
+            // Check if the graph is directed or undirected when v is not the parent of u
+            if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[vertex_u] != vertex_v))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * @brief This auxiliary function checks if the graph contains a negative cycle.
+     *
+     * @param graph The graph to check for negative cycles.
+     * @param distance The vector storing the distances from the source vertex to each vertex.
+     * @param parent The vector storing the parent of each vertex in the shortest path tree.
+     * @return true if the graph contains a negative cycle, false otherwise.
+     */
+    bool Algorithms::hasNegativeCycle(Graph& graph, vector<int>& distance, vector<size_t>& parent)
+    {
+        size_t numVertices = graph.getNumVertices();
+        for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++)
+        {
+            for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++)
+            {
+                int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
+                // If an additional relaxation is possible, a negative cycle exists
+                if (canRelax(graph, vertex_u, vertex_v, weight, distance, parent))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
 
     /**
@@ -516,12 +563,12 @@ namespace ariel {
                     // Found a cycle returning to the start vertex
                     string cycle = to_string(i);
                     size_t current = vertex;
-                    while (current != i) 
+                    while (current != i)
                     {
-                        cycle = to_string(current) + "->" + cycle;
+                        cycle.insert(0, to_string(current) + "->");
                         current = parent[current];
                     }
-                    cycle = to_string(i) + "->" + cycle;
+                    cycle.insert(0, to_string(i) + "->");
                     return cycle;
                 }
             }
@@ -654,9 +701,9 @@ namespace ariel {
         }
 
         // Traverse backwards from end to start using the parent vector
-        while (current != start) 
+        while (current != start)
         {
-            path = "->" + to_string(current) + path;
+            path.insert(0, "->" + to_string(current));
             current = parent[current];
         }
 
@@ -701,7 +748,7 @@ namespace ariel {
      * @param set A vector containing the indices of vertices in the set.
      * @return A string representation of the set.
      */
-    string Algorithms::buildSet(const vector<size_t>& set) 
+    string Algorithms::buildSet(vector<size_t>& set) 
     {
         string result = "{";
         for (size_t i = 0; i < set.size(); i++) 
@@ -735,30 +782,14 @@ namespace ariel {
         // Check each vertex as a potential start point
         for (size_t start = 0; start < numVertices; start++) 
         {
-            distance.assign(numVertices, INT_MAX);      // Reset distances to infinity
-            parent.assign(numVertices, INT_MAX);        // Reset parent pointers
-            distance[start] = 0;                        // Distance to self is zero
+            distance.assign(numVertices, INT_MAX);     // Reset distances to infinity
+            parent.assign(numVertices, INT_MAX);       // Reset parent pointers
+            distance[start] = 0;                       // Distance to self is zero
 
             // Relax edges for all vertices
             for (int i = 0; i < numVertices - 1; i++) 
             {
-                for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++) 
-                {
-                    for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
-                    {
-                        int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
-                        
-                        // Relax the edge if possible
-                        if (weight != 0 && distance[vertex_u] != INT_MAX && distance[vertex_u] + weight < distance[vertex_v]) 
-                        {
-                            if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[vertex_u] != vertex_v)) 
-                            {
-                                distance[vertex_v] = distance[vertex_u] + weight;
-                                parent[vertex_v] = vertex_u;
-                            }
-                        }
-                    }
-                }
+                relaxEdges(graph, distance, parent);
             }
 
             // Check for cycle on the last iteration
@@ -767,35 +798,31 @@ namespace ariel {
                 for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
                 {
                     int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
-                    
-                    // A cycle is found if further relaxation is possible
-                    if (weight != 0 && distance[vertex_u] != INT_MAX && distance[vertex_u] + weight < distance[vertex_v]) 
+                    // A cycle is found if further relaxation is possible    
+                    if (canRelax(graph, vertex_u, vertex_v, weight, distance, parent)) 
                     {
-                        if (graph.isGraphDirected() || (!graph.isGraphDirected() && parent[vertex_u] != vertex_v)) 
-                        {
-                            size_t current = vertex_v;
-                            vector<size_t> cycle;
+                        size_t current = vertex_v;
+                        vector<size_t> cycle;
 
-                            // Trace back the cycle
-                            while (current != INT_MAX) 
+                        // Trace back the cycle
+                        while (current != INT_MAX) 
+                        {
+                            cycle.push_back(current);
+                            current = parent[current];
+                            if (find(cycle.begin(), cycle.end(), current) != cycle.end()) 
                             {
                                 cycle.push_back(current);
-                                current = parent[current];
-                                if (find(cycle.begin(), cycle.end(), current) != cycle.end()) 
-                                {
-                                    cycle.push_back(current);
-                                    break;
-                                }
+                                break;
                             }
-
-                            string cycleString;
-                            cycleString += to_string(cycle.back());
-                            for (size_t i = cycle.size() - 2; i != static_cast<size_t>(-1); i--) 
-                            {
-                                cycleString += "->" + to_string(cycle[i]);
-                            }
-                            return cycleString;
                         }
+
+                        string cycleString;
+                        cycleString += to_string(cycle.back());
+                        for (size_t i = cycle.size() - 2; i != static_cast<size_t>(-1); i--) 
+                        {
+                            cycleString += "->" + to_string(cycle[i]);
+                        }
+                        return cycleString;
                     }
                 }
             }

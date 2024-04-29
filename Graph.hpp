@@ -1,3 +1,6 @@
+// ID: 200661775
+// Email: origoldbsc@gmail.com
+
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
@@ -13,18 +16,33 @@ namespace ariel {
     class Graph 
     {
 
-    // Private attributes    
+    // Private attributes and functions   
     private:
         vector<vector<int>> adjacencyMatrix;    // A variable that stores the adjacency matrix which representing the graph. 
         size_t numVertices;                     // A variable that stores the number of vertices in the graph.
         size_t numEdges;                        // A variable that stores the  number of edges in the graph.
         bool isDirected;                        // A flag that indicates if the graph is directed or undirected.
-    
+
+
+        /**
+         * @brief This auxiliary function determines if a graph is directed or not.
+         * @return true if the graph is directed, otherwise false.
+         */
+        bool checkDirected();
+
+
+        /**
+         * @brief This auxiliary function countd the number of edges in a graph.
+         * @return number of edges.
+         */
+        size_t countEdges();
+
+
     // Public methods  
     public:
 
         /**
-         * @brief A constructor for the Graph class.
+         * @brief A default constructor for the Graph class.
          */
         Graph();
 
@@ -58,16 +76,16 @@ namespace ariel {
 
 
         /**
-         * @brief This method returns the adjacency matrix of the graph. 
-         * A 2D array represented by vetcor of vectors.
-         * @return A reference to the adjacency matrix.
+         * @brief This method returns if an instance of a graph is directed or not.
          */
+        
         bool isGraphDirected();
 
 
         /**
-         * @brief This method returns if the graph is directed or  not.
-         * @return True if the graph is directed, false otherwise.
+         * @brief This method returns the adjacency matrix of the graph. 
+         * A 2D array represented by vetcor of vectors.
+         * @return A reference to the adjacency matrix.
          */
         vector<vector<int>>& getAdjacencyMatrix();
     };

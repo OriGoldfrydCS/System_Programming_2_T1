@@ -1,3 +1,6 @@
+// ID: 200661775
+// Email: origoldbsc@gmail.com
+
 #include "Graph.hpp"
 #include <iostream>
 #include <stdexcept>
@@ -7,7 +10,7 @@ using namespace std;
 namespace ariel {
 
     /**
-     * @brief A constructor for the Graph class.
+     * @brief A default constructor for the Graph class.
      */
     Graph::Graph() : numVertices(0), numEdges(0), isDirected(false) {}
 
@@ -39,44 +42,13 @@ namespace ariel {
         
         adjacencyMatrix = matrix;
 
-        // Check if the graph is directed
-        isDirected = false;
-        for (size_t i = 0; i < numVertices; i++) 
-        {
-            for (size_t j = 0; j < numVertices; j++) 
-            {
-                if (adjacencyMatrix[i][j] != adjacencyMatrix[j][i]) 
-                {
-                    isDirected = true;
-                    break;
-                }
-            }
+        // Check if the graph is directed or not
+        isDirected = checkDirected();
 
-            if (isDirected) 
-            {
-                break;
-            }
-        }
-
-        // Count the number of edges
-        for (size_t i = 0; i < numVertices; i++) 
-        {
-            for (size_t j = i + 1; j < numVertices; j++) 
-            {
-                if (adjacencyMatrix[i][j] != 0) 
-                {
-                    numEdges++;
-
-                    // Count another edge only if the graph is directed one
-                    if (isDirected) 
-                    {
-                        numEdges++; 
-                    }
-                }
-            }
-        }
+        // Count the number of edges based on graph type
+        numEdges = countEdges();
     }
-
+        
 
     /**
      * @brief This method prints the number of vertices and edges in the graph.
@@ -124,5 +96,69 @@ namespace ariel {
     bool Graph::isGraphDirected() 
     {
         return isDirected;
+    }
+
+
+
+    /*********************************************/
+    ///             PRIVATE SECTION             ///
+    /*********************************************/
+
+    /**
+    * @brief This auxiliary function determines if a graph is directed or not.
+    * @return true if the graph is directed, otherwise false.
+    */
+    bool Graph::checkDirected()
+    {
+        for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++)
+        {
+            for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++)
+            {
+                if (adjacencyMatrix[vertex_v][vertex_u] != adjacencyMatrix[vertex_u][vertex_v])
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
+    /**
+    * @brief This auxiliary function countd the number of edges in a graph.
+    * @return number of edges.
+    */
+    size_t Graph::countEdges()
+    {
+        size_t count = 0;
+        if (isDirected)
+        {
+            // Count edges for directed graph
+            for (size_t i = 0; i < numVertices; i++)
+            {
+                for (size_t j = 0; j < numVertices; j++)
+                {
+                    if (adjacencyMatrix[i][j] != 0)
+                    {
+                        count++;
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Count edges for undirected graph
+            for (size_t i = 0; i < numVertices; i++)
+            {
+                for (size_t j = i; j < numVertices; j++)
+                {
+                    if (adjacencyMatrix[i][j] != 0)
+                    {
+                        count++;
+                    }
+                }
+            }
+        }
+        return count;
     }
 }
