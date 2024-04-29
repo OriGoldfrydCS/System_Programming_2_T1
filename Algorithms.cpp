@@ -24,7 +24,7 @@ namespace ariel {
     {
         size_t numVertices = graph.getNumVertices();
 
-        // The graph is trivially connected
+        // Check if the graph is trivially connected
         if (numVertices == 1) 
         {
             return true;
@@ -528,6 +528,64 @@ namespace ariel {
     }
 
 
+    /**
+     * @brief This auxiliary function finds the vertex with the minimum distance that has not been visited yet.
+     * 
+     * This is a function used by Dijkstra's algorithm to select the next vertex to visit.
+     *
+     * @param distance A vector of distances from the start vertex.
+     * @param visited A vector indicating whether each vertex has been visited.
+     * @return The index of the vertex with the smallest distance that has not been visited.
+     */
+    size_t Algorithms::findMinDistanceVertex(vector<int>& distance, vector<bool>& visited) {
+        size_t minVertex = INT_MAX;
+        int minDistance = INT_MAX;          // We will start with the largest possible distance
+
+        // Iterate through all vertices
+        for (size_t vertex_v = 0; vertex_v < distance.size(); vertex_v++) 
+        {
+            // Update the vertex with the minimum distance that has not been visited
+            if (!visited[vertex_v] && distance[vertex_v] < minDistance) 
+            {
+                minVertex = vertex_v;
+                minDistance = distance[vertex_v];
+            }
+        }
+
+        return minVertex;
+    }
+
+
+    /**
+     * @brief This auxiliary function builds the path from the start vertex to the end vertex.
+     *
+     * @param start The start vertex of the path.
+     * @param end The end vertex of the path.
+     * @param parent The vector containing each vertex's parent in the path.
+     * @return A string representing the path or an empty string if no path exists.
+     */
+    string Algorithms::buildPath(size_t start, size_t end, vector<size_t>& parent) {
+        string path;
+        size_t current = end;
+
+        // If no path exists from start to end, return an empty string
+        if (parent[current] == INT_MAX) 
+        {
+            return "";
+        }
+
+        // Traverse backwards from end to start using the parent vector
+        while (current != start)
+        {
+            path.insert(0, "->" + to_string(current));
+            current = parent[current];
+        }
+
+        // Add the start vertex to the path
+        path = to_string(start) + path;
+
+        return path;
+    }
 
     /**
      * @brief This auxiliary function uses DFS to detect a cycle in the graph starting from a given vertex.
@@ -628,6 +686,31 @@ namespace ariel {
         return true;
     }
 
+
+
+    /**
+     * @brief This auxiliary function builds a string representation of a set of vertices.
+     *
+     * @param set A vector containing the indices of vertices in the set.
+     * @return A string representation of the set.
+     */
+    string Algorithms::buildSet(vector<size_t>& set) 
+    {
+        string result = "{";
+        for (size_t i = 0; i < set.size(); i++) 
+        {
+            result += to_string(set[i]);
+            if (i < set.size() - 1)             // We use this condition to determine whether to add "," to the string
+            {
+                result += ",";
+            }
+        }
+        result += "}";
+        return result;
+    }
+
+
+
     /**
      * @brief This auxiliary function checks if a graph is unweighted.
      * 
@@ -683,88 +766,6 @@ namespace ariel {
     
 
     /**
-     * @brief This auxiliary function builds the path from the start vertex to the end vertex.
-     *
-     * @param start The start vertex of the path.
-     * @param end The end vertex of the path.
-     * @param parent The vector containing each vertex's parent in the path.
-     * @return A string representing the path or an empty string if no path exists.
-     */
-    string Algorithms::buildPath(size_t start, size_t end, vector<size_t>& parent) {
-        string path;
-        size_t current = end;
-
-        // If no path exists from start to end, return an empty string
-        if (parent[current] == INT_MAX) 
-        {
-            return "";
-        }
-
-        // Traverse backwards from end to start using the parent vector
-        while (current != start)
-        {
-            path.insert(0, "->" + to_string(current));
-            current = parent[current];
-        }
-
-        // Add the start vertex to the path
-        path = to_string(start) + path;
-
-        return path;
-    }
-
-
-    /**
-     * @brief This auxiliary function finds the vertex with the minimum distance that has not been visited yet.
-     * 
-     * This is a function used by Dijkstra's algorithm to select the next vertex to visit.
-     *
-     * @param distance A vector of distances from the start vertex.
-     * @param visited A vector indicating whether each vertex has been visited.
-     * @return The index of the vertex with the smallest distance that has not been visited.
-     */
-    size_t Algorithms::findMinDistanceVertex(vector<int>& distance, vector<bool>& visited) {
-        size_t minVertex = INT_MAX;
-        int minDistance = INT_MAX;          // We will start with the largest possible distance
-
-        // Iterate through all vertices
-        for (size_t vertex_v = 0; vertex_v < distance.size(); vertex_v++) 
-        {
-            // Update the vertex with the minimum distance that has not been visited
-            if (!visited[vertex_v] && distance[vertex_v] < minDistance) 
-            {
-                minVertex = vertex_v;
-                minDistance = distance[vertex_v];
-            }
-        }
-
-        return minVertex;
-    }
-
-
-    /**
-     * @brief This auxiliary function builds a string representation of a set of vertices.
-     *
-     * @param set A vector containing the indices of vertices in the set.
-     * @return A string representation of the set.
-     */
-    string Algorithms::buildSet(vector<size_t>& set) 
-    {
-        string result = "{";
-        for (size_t i = 0; i < set.size(); i++) 
-        {
-            result += to_string(set[i]);
-            if (i < set.size() - 1)             // We use this condition to determine whether to add "," to the string
-            {
-                result += ",";
-            }
-        }
-        result += "}";
-        return result;
-    }
-
-
-    /**
      * @brief This auxiliary function finds a negative cycle (if exists) in a graph using a modified Bellman-Ford algorithm.
      * 
      * This function attempts to detect a negative cycle by relaxing edges repeatedly and checking
@@ -773,6 +774,7 @@ namespace ariel {
      * @param graph The graph in which to detect negative cycles.
      * @return A string describing the cycle if found, or a message indicating no cycle exists.
      */
+
     string Algorithms::detectNegativeCycle(Graph& graph) 
     {
         size_t numVertices = graph.getNumVertices();
@@ -793,42 +795,60 @@ namespace ariel {
             }
 
             // Check for cycle on the last iteration
-            for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++) 
+            if (hasNegativeCycle(graph, distance, parent)) 
             {
-                for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
-                {
-                    int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
-                    // A cycle is found if further relaxation is possible    
-                    if (canRelax(graph, vertex_u, vertex_v, weight, distance, parent)) 
-                    {
-                        size_t current = vertex_v;
-                        vector<size_t> cycle;
-
-                        // Trace back the cycle
-                        while (current != INT_MAX) 
-                        {
-                            cycle.push_back(current);
-                            current = parent[current];
-                            if (find(cycle.begin(), cycle.end(), current) != cycle.end()) 
-                            {
-                                cycle.push_back(current);
-                                break;
-                            }
-                        }
-
-                        string cycleString;
-                        cycleString += to_string(cycle.back());
-                        for (size_t i = cycle.size() - 2; i != static_cast<size_t>(-1); i--) 
-                        {
-                            cycleString += "->" + to_string(cycle[i]);
-                        }
-                        return cycleString;
-                    }
-                }
+                return buildNegativeCycle(graph, distance, parent);
             }
         }
 
         return "No negative cycle exists";
+    }
+
+    /**
+     * @brief This auxiliary function builds a negative cycle found in the graph.
+     *
+     * @param graph The graph containing the negative cycle.
+     * @param distance The vector storing the distances from the source vertex to each vertex.
+     * @param parent The vector storing the parent of each vertex in the shortest path tree.
+     * @return A string representing the negative cycle.
+     */
+    string Algorithms::buildNegativeCycle(Graph& graph, vector<int>& distance, vector<size_t>& parent)
+    {
+        size_t numVertices = graph.getNumVertices();
+        for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++)
+        {
+            for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++)
+            {
+                int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
+                // A cycle is found if further relaxation is possible
+                if (canRelax(graph, vertex_u, vertex_v, weight, distance, parent))
+                {
+                    size_t current = vertex_v;
+                    vector<size_t> cycle;
+
+                    // Trace back the cycle
+                    while (current != INT_MAX)
+                    {
+                        cycle.push_back(current);
+                        current = parent[current];
+                        if (find(cycle.begin(), cycle.end(), current) != cycle.end())
+                        {
+                            cycle.push_back(current);
+                            break;
+                        }
+                    }
+
+                    string cycleString;
+                    cycleString += to_string(cycle.back());
+                    for (size_t i = cycle.size() - 2; i != static_cast<size_t>(-1); i--)
+                    {
+                        cycleString += "->" + to_string(cycle[i]);
+                    }
+                    return cycleString;
+                }
+            }
+        }
+        return "";
     }
 
 }

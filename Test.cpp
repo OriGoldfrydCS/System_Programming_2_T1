@@ -10,7 +10,7 @@
 using namespace std;
 using namespace ariel;
 
-Graph g;            // Initiate an empty graph instance to be used in the following tests
+Graph g;         // Initiate an empty graph instance to be used in the following tests
 
 /*********************************************/
 ///             TEST FOR GRAPH              ///
@@ -662,35 +662,3 @@ vector<vector<int>> matrix = {
     g.loadGraph(matrix);   
     CHECK(((Algorithms::negativeCycle(g) == "0->1->0") || (Algorithms::negativeCycle(g) == "1->0->1"))); 
 }
-
-
-
-
-/////////////////////////////////////////////////////////////////////////
-     
-    // TEST_CASE("Test negative cycle")
-    // {
-    //     ariel::Graph g;
-    //     vector<vector<int>> graph = {
-    //         {0, 0, 0, 0},
-    //         {4, 0, -6, 0},
-    //         {0, 0, 0, 5},
-    //         {0, -2, 0, 0}};
-    //     g.loadGraph(graph);
-    //     CHECK(ariel::Algorithms::negativeCycle(g) == "1->2->3->1");
-    // }
-    // TEST_CASE("Test isContainsCycle")
-    // {
-    // ariel::Graph g;
-    // vector<vector<int>> graph = {
-    //     {0, 1, 0},
-    //     {1, 0, 1},
-    //     {0, 1, 0}};
-    // g.loadGraph(graph);
-    // vector<vector<int>> graph10 = {
-    //     {0, 2, 0},
-    //     {1, 0, 1},
-    //     {0, 1, 0}};
-    // g.loadGraph(graph10);
-    // CHECK(((ariel::Algorithms::isContainsCycle(g) == "0->1->0") || (ariel::Algorithms::isContainsCycle(g) == "1->0->1")));
-    // }

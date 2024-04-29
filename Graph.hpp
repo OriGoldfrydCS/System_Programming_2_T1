@@ -18,10 +18,10 @@ namespace ariel {
 
     // Private attributes and functions   
     private:
-        vector<vector<int>> adjacencyMatrix;    // A variable that stores the adjacency matrix which representing the graph. 
-        size_t numVertices;                     // A variable that stores the number of vertices in the graph.
-        size_t numEdges;                        // A variable that stores the  number of edges in the graph.
-        bool isDirected;                        // A flag that indicates if the graph is directed or undirected.
+        vector<vector<int>> adjacencyMatrix;   // A variable that stores the adjacency matrix which representing the graph. 
+        size_t numVertices;                    // A variable that stores the number of vertices in the graph.
+        size_t numEdges;                       // A variable that stores the  number of edges in the graph.
+        bool isDirected;                       // A flag that indicates if the graph is directed or undirected.
 
 
         /**
