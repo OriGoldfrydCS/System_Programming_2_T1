@@ -52,11 +52,9 @@ namespace ariel {
 
     /**
      * @brief This method prints the number of vertices and edges in the graph.
-     * @note The bellow comment was added to make sure that make dity will not warn and force me to add const to the method.
-     * Read on: https://clang.llvm.org/extra/clang-tidy/.
      */
     // NOLINTNEXTLINE
-    void Graph::printGraph() 
+    void Graph::printGraph() const
     {
         cout << "Graph with " << numVertices << " vertices and " << numEdges << " edges" << endl;
     }
@@ -65,11 +63,9 @@ namespace ariel {
     /**
      * @brief This method returns the number of vertices in the graph.
      * @return The number of vertices.
-     * @note The bellow comment was added to make sure that make dity will not warn and force me to add const to the method.
-     * Read on: https://clang.llvm.org/extra/clang-tidy/.
      */
     // NOLINTNEXTLINE
-    size_t Graph::getNumVertices() 
+    size_t Graph::getNumVertices() const
     {
         return numVertices;
     }
@@ -78,11 +74,9 @@ namespace ariel {
     /**
      * @brief This method returns the number of edges in the graph.
      * @return The number of edges.
-     * @note The bellow comment was added to make sure that make dity will not warn and force me to add const to the method.
-     * Read on: https://clang.llvm.org/extra/clang-tidy/.
      */
     // NOLINTNEXTLINE
-    size_t Graph::getNumEdges() 
+    size_t Graph::getNumEdges() const
     {
         return numEdges;
     }
@@ -91,11 +85,8 @@ namespace ariel {
     /**
      * @brief This method returns if the graph is directed or  not.
      * @return True if the graph is directed, false otherwise.
-     * @note The bellow comment was added to make sure that make dity will not warn and force me to add const to the method.
-     * Read on: https://clang.llvm.org/extra/clang-tidy/.
      */
-    // NOLINTNEXTLINE
-    bool Graph::isGraphDirected() 
+    bool Graph::isGraphDirected() const
     {
         return isDirected;
     }

@@ -84,13 +84,16 @@ class Algorithms {
     private:
 
         /**
-         * @brief This auxiliary function preforms BFS on the graph starting from the given vertex.
+         * @brief This auxiliary function performs BFS on the graph starting from the given vertex.
+         * It can also be used to find the shortest path by tracking the parent of each vertex.
          *
          * @param graph The graph to perform BFS on.
          * @param startVertex The starting vertex for BFS.
          * @param visited A vector to track visited vertices.
+         * @param parent A vector to track the parent of the vertices (extents the classic BFS for finding the shortest path).
+         * @param parent A vector to track the parent of each vertex, used for rebuilding paths (extents the classic BFS for finding the shortest path).
          */
-        static void bfs(Graph& graph, size_t startVertex, vector<bool>& visited);
+        static void bfs(Graph& graph, size_t startVertex, vector<bool>& visited, vector<size_t>& parent, size_t end);
 
 
         /**
@@ -229,24 +232,12 @@ class Algorithms {
 
 
         /**
-         * @brief This auxiliary function checks if a graph is unweighted.
-         * 
-         * This function checks if all the edges in the graph have weights of either 0 or 1,
+         * @brief This auxiliary function checks the graph type (weighted/unweighted, negative edges).
          *
          * @param graph The graph to be checked.
-         * @return true if the graph is unweighted, false otherwise.
+         * @return A pair of boolean values the give indication if the graph is unweighted and if it has negative edges.
          */
-        static bool isGraphUnweighted(Graph& graph);
-
-
-        /**
-         * @brief This auxiliary function checks if a graph contains any negative edges.
-         *
-         *
-         * @param graph The graph to be checked.
-         * @return true if there is at least one negative edge, false otherwise.
-         */
-        static bool hasNegativeEdgesInGraph(Graph& graph);
+        static pair<bool, bool> checkGraphType(Graph& graph);
 
 
         /**

@@ -58,28 +58,28 @@ namespace ariel {
         /**
          * @brief This method prints the number of vertices and edges in the graph.
          */
-        void printGraph();
+        void printGraph() const;
 
 
         /**
          * @brief This method returns the number of vertices in the graph.
          * @return The number of vertices.
          */
-        size_t getNumVertices();
+        size_t getNumVertices() const;
 
 
         /**
          * @brief This method returns the number of edges in the graph.
          * @return The number of edges.
          */
-        size_t getNumEdges();
+        size_t getNumEdges() const;
 
 
         /**
          * @brief This method returns if an instance of a graph is directed or not.
          */
         
-        bool isGraphDirected();
+        bool isGraphDirected() const;
 
 
         /**
