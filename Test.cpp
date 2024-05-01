@@ -344,7 +344,7 @@ TEST_CASE("Test shortestPath: Graph with a longer path") {
 
 
 TEST_CASE("Test shortestPath (Dijkstra): Graph with multiple paths") {
-    vector<vector<int>> G = {
+    vector<vector<int>> matrix = {
         {0, 3, 0, 7, 0},
         {3, 0, 4, 2, 0},
         {0, 4, 0, 5, 6},
@@ -352,7 +352,7 @@ TEST_CASE("Test shortestPath (Dijkstra): Graph with multiple paths") {
         {0, 0, 6, 1, 0}
     };
     
-    g.loadGraph(G);
+    g.loadGraph(matrix);
     
     CHECK(Algorithms::shortestPath(g, 0, 4) == "0->1->3->4");
     CHECK(Algorithms::shortestPath(g, 1, 2) == "1->2");
@@ -375,12 +375,12 @@ TEST_CASE("Test shortestPath (BF): Graph with multiple paths"){
 }
 
 TEST_CASE("Test shortestPath (Dijkstra): Invalid vertex"){
-    vector<vector<int>> graph2 = {
+    vector<vector<int>> matrix = {
             {0, 1, 1, 0},
             {1, 0, 0, 0},
             {1, 1, 0, 0},
             {0, 0, 1, 0}};
-        g.loadGraph(graph2);
+        g.loadGraph(matrix);
         CHECK(ariel::Algorithms::shortestPath(g, 0, 4) == "Invalid start or end vertex");
         CHECK(ariel::Algorithms::shortestPath(g, 4, 0) == "Invalid start or end vertex");
         CHECK(ariel::Algorithms::shortestPath(g, 0, 3) == "No path exists between 0 and 3");
@@ -405,23 +405,23 @@ TEST_CASE("Test isContainsCycle: Undirected graph with no cycle") {
 }
 
 TEST_CASE("Test isContainsCycle: Undirected graph with a cycle") {
-    vector<vector<int>> cycleGraph = {
+    vector<vector<int>> matrix = {
         {0, 1, 1, 0, 0},
         {1, 0, 1, 0, 0},
         {1, 1, 0, 1, 0},
         {0, 0, 1, 0, 0},
         {0, 0, 0, 0, 0}};
-    g.loadGraph(cycleGraph);
+    g.loadGraph(matrix);
     CHECK(((Algorithms::isContainsCycle(g) == "0->1->2->0") || (Algorithms::isContainsCycle(g) == "2->0->1->2")));
 }
 
 TEST_CASE("Test isContainsCycle: Directed graph with a cycle") {
-    vector<vector<int>> directedCycleGraph = {
+    vector<vector<int>> matrix = {
         {0, 1, 0, 0},
         {0, 0, 1, 0},
         {0, 0, 0, 1},
         {1, 0, 0, 0}};
-    g.loadGraph(directedCycleGraph);
+    g.loadGraph(matrix);
     CHECK(((Algorithms::isContainsCycle(g) == "0->1->2->3->0") || (Algorithms::isContainsCycle(g) == " 3->0->1->2->3")));
 }
 
@@ -498,11 +498,11 @@ TEST_CASE("Test isBipartite: Graph without edges") {
 }
 
 TEST_CASE("Test isBipartite: Bipartite graph") {
-    vector<vector<int>> bipartiteGraph = {
+    vector<vector<int>> matrix = {
         {0, 1, 0},
         {1, 0, 1},
         {0, 1, 0}};
-    g.loadGraph(bipartiteGraph);
+    g.loadGraph(matrix);
     CHECK(Algorithms::isBipartite(g) == "The graph is bipartite: A={0,2}, B={1}");
 }
 
@@ -623,33 +623,33 @@ TEST_CASE("Test negativeCycle: Graph with negative cycle") {
 }
 
 TEST_CASE("Test negativeCycle: Graph with a negative weight cycle") {
-    vector<vector<int>> negativeWeightCycleGraph = {
+    vector<vector<int>> matrix = {
         {0, -1, 0, 0},
         {0, 0, -1, 0},
         {0, 0, 0, -1},
         {-1, 0, 0, 0}};
-    g.loadGraph(negativeWeightCycleGraph);
+    g.loadGraph(matrix);
     CHECK(((Algorithms::negativeCycle(g) == "0->1->2->3->0") || (Algorithms::negativeCycle(g) == "1->2->3->0->1")));
 }
 
 TEST_CASE("Test negativeCycle: Graph with negative weights and no negative cycle") {
-    vector<vector<int>> negativeWeightsNoNegativeCycleGraph = {
+    vector<vector<int>> matrix = {
         {0, -1, 0, 0, 0},
         {0, 0, -1, 0, 0},
         {0, 0, 0, -1, 0},
         {0, 0, 0, 0, -1},
         {0, 0, 0, 0, 0}};
-    g.loadGraph(negativeWeightsNoNegativeCycleGraph);
+    g.loadGraph(matrix);
     CHECK(Algorithms::negativeCycle(g) == "No negative cycle exists");
 }
 
 TEST_CASE("Test negativeCycle: Graph with a negative weight edge but no negative cycle") {
-    vector<vector<int>> negativeWeightNoNegativeCycleGraph = {
+    vector<vector<int>> matrix = {
         {0, -1, 0, 0},
         {0, 0, -1, 0},
         {0, 0, 0, -1},
         {0, 0, 0, 0}};
-    g.loadGraph(negativeWeightNoNegativeCycleGraph);
+    g.loadGraph(matrix);
     CHECK(Algorithms::negativeCycle(g) == "No negative cycle exists");
 }
 
@@ -662,3 +662,67 @@ vector<vector<int>> matrix = {
     g.loadGraph(matrix);   
     CHECK(((Algorithms::negativeCycle(g) == "0->1->0") || (Algorithms::negativeCycle(g) == "1->0->1"))); 
 }
+
+
+
+
+
+
+
+///////////////////////
+
+
+TEST_CASE("Test shortestPath for BFS and BF")
+{
+    
+
+    vector<vector<int>> graph5 = {
+        {0, 8, -2},
+        {8, 0, -5},
+        {-1, -5, 0}};
+    g.loadGraph(graph5);
+    cout << g.isGraphDirected() << endl;
+    CHECK(ariel::Algorithms::shortestPath(g, 0, 2) == "Negative cycle detected");
+
+   
+}
+
+
+TEST_CASE("Test isContainsCycle")
+{
+    
+    vector<vector<int>> graph3 = {
+        {0, 2, 0},
+        {1, 0, 1},
+        {0, 1, 0}};
+
+    g.loadGraph(graph3);
+    cout << g.isGraphDirected() << endl;
+    CHECK(ariel::Algorithms::isContainsCycle(g) == "0->1->0");
+
+    
+
+
+    
+}
+
+
+    TEST_CASE("Test negative cycle")
+    {
+        
+        vector<vector<int>> graph4 = {
+            {0, 8, -2},
+            {8, 0, -5},
+            {-1, -5, 0}};
+        g.loadGraph(graph4);
+        CHECK((ariel::Algorithms::negativeCycle(g) == "0->2->0" || ariel::Algorithms::negativeCycle(g) == "2->0->2"));
+
+        vector<vector<int>> graph5 = {
+            {0, 8, -1},
+            {8, 0, -4},
+            {-1, -5, 0}};
+        g.loadGraph(graph5);
+        CHECK((ariel::Algorithms::negativeCycle(g) == "0->2->0" || ariel::Algorithms::negativeCycle(g) == "2->0->2"));
+
+        
+    }

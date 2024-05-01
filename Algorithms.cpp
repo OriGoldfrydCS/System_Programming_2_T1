@@ -249,7 +249,7 @@ namespace ariel {
         }
 
         // Part 3: Check for negative cycles with with path involves more than one edge
-        string result = detectNegativeCycle(graph);
+        string result = findNegativeCircle(graph);
         if (result != "No negative cycle exists") 
         {
             return result;
@@ -360,7 +360,7 @@ namespace ariel {
         }
 
         // Check for negative cycle on the V-th iteration
-        if (hasNegativeCycle(graph, distance, parent))
+        if (relaxEdges(graph, distance, parent))
         {
             return "Graph contains a negative cycle";
         }
@@ -384,22 +384,26 @@ namespace ariel {
      * @param distance The vector storing the distances from the source vertex to each vertex.
      * @param parent The vector storing the parent of each vertex in the shortest path tree.
      */
-    void Algorithms::relaxEdges(Graph& graph, vector<int>& distance, vector<size_t>& parent)
+    bool Algorithms::relaxEdges(Graph& graph, vector<int>& distance, vector<size_t>& parent)
     {
+        bool hasNegativeCycle = false;
         size_t numVertices = graph.getNumVertices();
         for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++)
         {
             for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++)
             {
                 int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
+                
                 // Check if there is an edge u->v and if the current path through u is shorter
                 if (canRelax(graph, vertex_u, vertex_v, weight, distance, parent))
                 {
-                    distance[vertex_v] = distance[vertex_u] + weight; // Update the distance to vertex v through u
-                    parent[vertex_v] = vertex_u; // Record u as the parent of v
+                    distance[vertex_v] = distance[vertex_u] + weight;   // Update the distance to vertex v through u
+                    parent[vertex_v] = vertex_u;                        // Record u as the parent of v
+                    hasNegativeCycle = true;                            // Mark that a negative cycle detected
                 }
             }
         }
+        return hasNegativeCycle;
     }
 
     /**
@@ -423,33 +427,6 @@ namespace ariel {
             if (parent[vertex_u] != vertex_v)
             {
                 return true;
-            }
-        }
-        return false;
-    }
-
-
-    /**
-     * @brief This auxiliary function checks if the graph contains a negative cycle.
-     *
-     * @param graph The graph to check for negative cycles.
-     * @param distance The vector storing the distances from the source vertex to each vertex.
-     * @param parent The vector storing the parent of each vertex in the shortest path tree.
-     * @return true if the graph contains a negative cycle, false otherwise.
-     */
-    bool Algorithms::hasNegativeCycle(Graph& graph, vector<int>& distance, vector<size_t>& parent)
-    {
-        size_t numVertices = graph.getNumVertices();
-        for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++)
-        {
-            for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++)
-            {
-                int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
-                // If an additional relaxation is possible, a negative cycle exists
-                if (canRelax(graph, vertex_u, vertex_v, weight, distance, parent))
-                {
-                    return true;
-                }
             }
         }
         return false;
@@ -730,50 +707,108 @@ namespace ariel {
     
 
     /**
-     * @brief This auxiliary function finds a negative cycle (if exists) in a graph using a modified Bellman-Ford algorithm.
+     * @brief This auxiliary function finds a negative cycle (if exists) in a graph using a Bellman-Ford algorithm.
      * 
-     * This function attempts to detect a negative cycle by relaxing edges repeatedly and checking
-     * for changes in the shortest path estimate that indicate a cycle.
+     * This function attempts to detect a negative cycle by relaxing edges repeatedly and try to find an indication for a cycle.
      *
      * @param graph The graph in which to detect negative cycles.
      * @return A string describing the cycle if found, or a message indicating no cycle exists.
      */
-
-    string Algorithms::detectNegativeCycle(Graph& graph) 
+    string Algorithms::findNegativeCircle(Graph& graph) 
     {
-    size_t numVertices = graph.getNumVertices();
-    vector<int> distance(numVertices, 0);
-    vector<size_t> parent(numVertices, INT_MAX);
+        size_t numVertices = graph.getNumVertices();
+        vector<int> distance(numVertices, 0);
+        vector<size_t> parent(numVertices, SIZE_MAX);
 
-    // Relax edges V times
-    for (int i = 0; i < numVertices; i++)
-    {
-        relaxEdges(graph, distance, parent);
+        // Relax edges V-1 times
+        for (int i = 0; i < numVertices - 1; i++)
+        {
+            relaxEdges(graph, distance, parent);
+        }
+
+        // Check for negative cycle on the V-th iteration
+        if (relaxEdges(graph, distance, parent))
+        {
+            // Find a vertex in the negative cycle
+            size_t vertex = findNegativeCycleVertex(graph, distance, parent);
+            
+            // Build the negative cycle path
+            string cycle = buildNegativeCycle(graph, vertex, parent);
+            return cycle;
+        }
+
+        return "No negative cycle exists";
     }
 
-    // Check for negative cycle
-    for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++)
+
+    /**
+     * @brief This auxiliary function finds a vertex in a negative cycle.
+    *   
+    * @param graph The graph.
+    * @param distance The vector storing the distances from the source vertex to each vertex.
+    * @param parent The vector storing the parent of each vertex in the shortest path tree.
+    * @return The vertex in the negative cycle.
+    */
+    size_t Algorithms::findNegativeCycleVertex(Graph& graph, vector<int>& distance, vector<size_t>& parent)
     {
+        size_t numVertices = graph.getNumVertices();
+        
+        // Iterate over all vertices in the graph
         for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++)
         {
-            int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
-            // If an additional relaxation is possible, a negative cycle exists
-            if (canRelax(graph, vertex_u, vertex_v, weight, distance, parent))
+            // For each vertex v, iterate over all vertices u
+            for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++)
             {
-                // Build the negative cycle path
-                string cycle = to_string(vertex_v);
-                size_t current = vertex_u;
-                while (current != vertex_v)
+                // Get the weight of the edge from vertex u to vertex v
+                int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
+                
+                // If the edge can be relaxed, it means we found a vertex (vertex_v)
+                // that is part of a negative cycle
+                if (canRelax(graph, vertex_u, vertex_v, weight, distance, parent))
                 {
-                    cycle.insert(0, to_string(current) + "->");
-                    current = parent[current];
+                    return vertex_u;
                 }
-                cycle.insert(0, to_string(vertex_v) + "->");
-                return cycle;
             }
         }
+        return 0; 
     }
 
-    return "No negative cycle exists";
+    /**
+     * @brief This auxiliary function builds the negative cycle path.
+     *
+     * @param graph The graph.
+     * @param vertex_v The vertex involved in the negative cycle.
+     * @param parent The vector storing the parent of each vertex in the shortest path tree.
+     * @return A string representing the negative cycle path.
+     */
+    string Algorithms::buildNegativeCycle(Graph& graph, size_t vertex_v, vector<size_t>& parent)
+    {
+        string cycle;
+        size_t current = vertex_v;
+        size_t numVertices = graph.getNumVertices();
+        vector<bool> visited(numVertices, false);
+        size_t startVertex = current;
+        stack<size_t> path;
+
+        do
+        {
+            visited[current] = true;
+            path.push(current);
+            current = parent[current];
+        } while (current != startVertex);
+
+        path.push(startVertex);
+
+        while (!path.empty())
+        {
+            cycle += to_string(path.top());
+            path.pop();
+            if (!path.empty())
+            {
+                cycle += "->";
+            }
+        }
+
+        return cycle;
     }
 }

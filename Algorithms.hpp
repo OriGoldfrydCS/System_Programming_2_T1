@@ -129,7 +129,7 @@ class Algorithms {
          * @param distance The vector storing the distances from the source vertex to each vertex.
          * @param parent The vector storing the parent of each vertex in the shortest path tree.
          */
-        static void relaxEdges(Graph& graph, vector<int>& distance, vector<size_t>& parent);
+        static bool relaxEdges(Graph& graph, vector<int>& distance, vector<size_t>& parent);
 
 
         /**
@@ -144,17 +144,6 @@ class Algorithms {
          * @return true if the edge can be relaxed, false otherwise.
          */
         static bool canRelax(Graph& graph, size_t vertex_u, size_t vertex_v, int weight, vector<int>& distance, vector<size_t>& parent);
-
-
-        /**
-         * @brief This auxiliary function checks if the graph contains a negative cycle.
-         *
-         * @param graph The graph to check for negative cycles.
-         * @param distance The vector storing the distances from the source vertex to each vertex.
-         * @param parent The vector storing the parent of each vertex in the shortest path tree.
-         * @return true if the graph contains a negative cycle, false otherwise.
-         */
-        static bool hasNegativeCycle(Graph& graph, vector<int>& distance, vector<size_t>& parent);
 
 
         /**
@@ -241,15 +230,25 @@ class Algorithms {
 
 
         /**
-         * @brief This auxiliary function finds a negative cycle (if exists) in a graph using a modified Bellman-Ford algorithm.
+         * @brief This auxiliary function finds a negative cycle (if exists) in a graph using a Bellman-Ford algorithm.
          * 
-         * This function attempts to detect a negative cycle by relaxing edges repeatedly and checking
-         * for changes in the shortest path estimate that indicate a cycle.
+         * This function attempts to detect a negative cycle by relaxing edges repeatedly and try to find an indication for a cycle.
          *
          * @param graph The graph in which to detect negative cycles.
          * @return A string describing the cycle if found, or a message indicating no cycle exists.
          */
-        static string detectNegativeCycle(Graph& graph);
+        static string findNegativeCircle(Graph& graph);
+
+
+        /**
+         * @brief This auxiliary function finds a vertex in a negative cycle.
+         *
+         * @param graph The graph.
+         * @param distance The vector storing the distances from the source vertex to each vertex.
+         * @param parent The vector storing the parent of each vertex in the shortest path tree.
+         * @return The vertex in the negative cycle.
+         */
+        static size_t findNegativeCycleVertex(Graph& graph, vector<int>& distance, vector<size_t>& parent);
 
 
         /**
@@ -260,7 +259,7 @@ class Algorithms {
          * @param parent The vector storing the parent of each vertex in the shortest path tree.
          * @return A string representing the negative cycle.
          */
-        static string buildNegativeCycle(Graph& graph, vector<int>& distance, vector<size_t>& parent);
+        static string buildNegativeCycle(Graph& graph, size_t vertex_v, vector<size_t>& parent);
     };
 
 }
