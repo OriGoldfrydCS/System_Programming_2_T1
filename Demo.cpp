@@ -45,7 +45,7 @@ int main()
     cout << Algorithms::isConnected(g) << endl;        // Should print: "0" (false).
     cout << Algorithms::shortestPath(g, 0, 4) << endl; // Should print: "-1" (there is no path between 0 and 4).
     cout << Algorithms::isContainsCycle(g) << endl;    // Should print: "The cycle is: 0->1->2->0".
-    cout << Algorithms::isBipartite(g) << endl;        // Should print: "0" (false).
+    cout << Algorithms::isBipartite(g) << endl;        // Should print: "The graph is not bipartit.
 
     // 5x5 matrix that reprsents a connected weighted graph.
     vector<vector<int>> graph3 = {

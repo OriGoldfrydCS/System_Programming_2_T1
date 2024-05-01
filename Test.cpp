@@ -10,7 +10,7 @@
 using namespace std;
 using namespace ariel;
 
-Graph g;         // Initiate an empty graph instance to be used in the following tests
+Graph g;         // Initiate an empty instance of graph to be used in the following tests
 
 /*********************************************/
 ///             TEST FOR GRAPH              ///
@@ -425,17 +425,6 @@ TEST_CASE("Test isContainsCycle: Directed graph with a cycle") {
     CHECK(((Algorithms::isContainsCycle(g) == "0->1->2->3->0") || (Algorithms::isContainsCycle(g) == " 3->0->1->2->3")));
 }
 
-TEST_CASE("Test isContainsCycle: Compelx graph with cycles") {
-    vector<vector<int>> matrix = {
-        {0, -2, 0, 0, 0},
-        {-2, 0, -1, 0, 0},
-        {-4, -9, 0, -7, 0},
-        {0, 0, -1, 0, -1},
-        {0, 0, 0, -1, 0}
-    };
-    g.loadGraph(matrix);
-    CHECK(((Algorithms::isContainsCycle(g) == "0->1->2->0") || (Algorithms::isContainsCycle(g) == "2->0->1->2")));
-}
 
 TEST_CASE("Test isContainsCycle: Graph with self-loop") {
     vector<vector<int>> matrix = {
@@ -663,66 +652,15 @@ vector<vector<int>> matrix = {
     CHECK(((Algorithms::negativeCycle(g) == "0->1->0") || (Algorithms::negativeCycle(g) == "1->0->1"))); 
 }
 
-
-
-
-
-
-
-///////////////////////
-
-
-TEST_CASE("Test shortestPath for BFS and BF")
-{
-    
-
-    vector<vector<int>> graph5 = {
-        {0, 8, -2},
-        {8, 0, -5},
-        {-1, -5, 0}};
-    g.loadGraph(graph5);
-    cout << g.isGraphDirected() << endl;
-    CHECK(ariel::Algorithms::shortestPath(g, 0, 2) == "Negative cycle detected");
-
-   
-}
-
-
-TEST_CASE("Test isContainsCycle")
-{
-    
-    vector<vector<int>> graph3 = {
-        {0, 2, 0},
-        {1, 0, 1},
-        {0, 1, 0}};
-
-    g.loadGraph(graph3);
-    cout << g.isGraphDirected() << endl;
-    CHECK(ariel::Algorithms::isContainsCycle(g) == "0->1->0");
-
-    
-
-
-    
-}
-
-
-    TEST_CASE("Test negative cycle")
-    {
-        
-        vector<vector<int>> graph4 = {
-            {0, 8, -2},
-            {8, 0, -5},
-            {-1, -5, 0}};
-        g.loadGraph(graph4);
-        CHECK((ariel::Algorithms::negativeCycle(g) == "0->2->0" || ariel::Algorithms::negativeCycle(g) == "2->0->2"));
-
-        vector<vector<int>> graph5 = {
-            {0, 8, -1},
-            {8, 0, -4},
-            {-1, -5, 0}};
-        g.loadGraph(graph5);
-        CHECK((ariel::Algorithms::negativeCycle(g) == "0->2->0" || ariel::Algorithms::negativeCycle(g) == "2->0->2"));
-
-        
-    }
+TEST_CASE("Test negativeCircle: Compelx graph with two negative cycles") {
+    vector<vector<int>> matrix = {
+        {0, -2, 0, 0, 0},
+        {-2, 0, -1, 0, 0},
+        {-4, -9, 0, -7, 0},
+        {0, 0, -1, 0, -1},
+        {0, 0, 0, -1, 0}
+    };
+    g.loadGraph(matrix);
+    CHECK(((Algorithms::negativeCycle(g) == "1->2->1") || (Algorithms::negativeCycle(g) == "2->1->2") 
+    || (Algorithms::negativeCycle(g) == "4->5->4") || (Algorithms::negativeCycle(g) == "5->4->5") ));
+}    

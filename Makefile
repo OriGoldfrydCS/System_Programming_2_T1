@@ -6,7 +6,7 @@ CXX = clang++
 CXXFLAGS = -std=c++11 -Werror -Wsign-conversion
 VALGRIND_FLAGS = -v --leak-check=full --show-leak-kinds=all --error-exitcode=99
 
-# Macros for source and headers files
+# Macros for source files and headers files
 SOURCES = Graph.cpp Algorithms.cpp
 HEADERS = Graph.hpp Algorithms.hpp
 DEMO_SRC = Demo.cpp

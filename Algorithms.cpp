@@ -141,21 +141,21 @@ namespace ariel {
     {
         size_t numVertices = graph.getNumVertices();
         vector<bool> visited(numVertices, false);
-        vector<size_t> parent(numVertices, INT_MAX);
+        vector<bool> recStack(numVertices, false);
+        vector<size_t> parent(numVertices, 0);        
 
-        for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
-        {
-            if (!visited[vertex_v]) 
+            for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
             {
-                string cycle = dfs_cycle(graph, vertex_v, visited, parent, vertex_v);
-                if (!cycle.empty()) 
+                if (!visited[vertex_v]) 
                 {
-                    return cycle;
+                    string cycle = dfs_cycle(graph, vertex_v, visited, recStack, parent, graph.isGraphDirected());
+                    if (!cycle.empty()) 
+                    {
+                        return cycle;
+                    }
                 }
             }
-        }
-
-        return "0";
+            return "0"; 
     }
     
 
@@ -388,18 +388,32 @@ namespace ariel {
     {
         bool hasNegativeCycle = false;
         size_t numVertices = graph.getNumVertices();
+
         for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++)
         {
             for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++)
             {
                 int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v];
                 
+                // Check if there is a negative cycle between two neighboring vertices (and the edge is directed)
+                if (vertex_u != vertex_v && graph.getAdjacencyMatrix()[vertex_u][vertex_v] != 0 && graph.getAdjacencyMatrix()[vertex_v][vertex_u] != 0 &&
+                    graph.getAdjacencyMatrix()[vertex_u][vertex_v] != graph.getAdjacencyMatrix()[vertex_v][vertex_u])
+                {
+                    int weightSum = graph.getAdjacencyMatrix()[vertex_u][vertex_v] + graph.getAdjacencyMatrix()[vertex_v][vertex_u];
+                    if (weightSum < 0)
+                    {
+                        // Negative cycle found between two neighboring vertices, continue the loop
+                        hasNegativeCycle = true;
+                        continue;
+                    }
+                }
+                
                 // Check if there is an edge u->v and if the current path through u is shorter
                 if (canRelax(graph, vertex_u, vertex_v, weight, distance, parent))
                 {
                     distance[vertex_v] = distance[vertex_u] + weight;   // Update the distance to vertex v through u
                     parent[vertex_v] = vertex_u;                        // Record u as the parent of v
-                    hasNegativeCycle = true;                            // Mark that a negative cycle detected
+                    hasNegativeCycle = true;                            // Mark that a negative cycle is detected
                 }
             }
         }
@@ -551,38 +565,41 @@ namespace ariel {
         return path;
     }
 
+   
     /**
      * @brief This auxiliary function uses DFS to detect a cycle in the graph starting from a given vertex.
-     *
-     * @param graph The graph.
-     * @param vertex The starting vertex for DFS.
-     * @param visited A vector to keep track of visited vertices.
-     * @param parent A vector to keep track of the parents of each vertex.
-     * @param start The original starting vertex for cycle detection.
-     * @return A string representing the cycle or an empty string if no cycle is found.
+  
+     * @param graph The graph to be checked.
+     * @param vertex The current vertex that explored in the DFS.
+     * @param visited A vector that tracks if each vertex already visited to avoid revisiting.
+     * @param recStack A vector that tracks "active" vertices in the current recursion to find cycles.
+     * @param parent A vector that stores the parent of each vertex, for building the circle (if found).
+     * @param isDirected Boolean that give an undication if the graph is directed; that affects finding of back edges.
+     * @return A string representing the cycle, or an empty string if no cycle is found.
      */
-    string Algorithms::dfs_cycle(Graph& graph, size_t vertex, vector<bool>& visited, vector<size_t>& parent, size_t start) 
+    string Algorithms::dfs_cycle(Graph& graph, size_t vertex, vector<bool>& visited, vector<bool>& recStack, vector<size_t>& parent, bool isDirected) 
     {
-        visited[vertex] = true;
+        visited[vertex] = true;         // Mark the vertex as visited
+        recStack[vertex] = true;        // Mark the vertex as part of the recursion
 
         for (size_t i = 0; i < graph.getNumVertices(); i++) 
         {
-            if (graph.getAdjacencyMatrix()[vertex][i] != 0)      // Check if there is an edge v->i
+            if (graph.getAdjacencyMatrix()[vertex][i] != 0)     // Ensure there is an edge from vertex to i
             {
-                if (!visited[i]) 
+                if (!visited[i])                // If not visited, we will preform recursion
                 {
-                    parent[i] = vertex;                                                  // Set the parent of vertex i to v
-                    string cycle = dfs_cycle(graph, i, visited, parent, start);     // Recurse into vertex i
-                    
-                    // Check if a cycle is detected in recursion, and if so - return it
+                    parent[i] = vertex;         // Set the parent of i to vertex
+                    string cycle = dfs_cycle(graph, i, visited, recStack, parent, isDirected);
                     if (!cycle.empty()) 
                     {
                         return cycle;
                     }
                 } 
-                else if (i != parent[vertex] && i == start) 
+
+                // A check for cycle (directed or undirected avoiding parent)
+                else if (recStack[i] && (isDirected || parent[vertex] != i))  
                 {
-                    // Found a cycle returning to the start vertex
+                    // Build the cycle
                     string cycle = to_string(i);
                     size_t current = vertex;
                     while (current != i)
@@ -596,8 +613,8 @@ namespace ariel {
             }
         }
 
-        // Return empty if no cycle is found
-        return "";
+        recStack[vertex] = false;   // Remove the vertex from the recursion vector
+        return "";  
     }
 
 

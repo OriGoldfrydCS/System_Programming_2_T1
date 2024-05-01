@@ -4,8 +4,8 @@
 #ifndef ALGORITHMS_H
 #define ALGORITHMS_H
 
-#include <string>
 #include "Graph.hpp"
+#include <string>
 
 using namespace std;
 
@@ -185,16 +185,17 @@ class Algorithms {
         
         /**
          * @brief This auxiliary function uses DFS to detect a cycle in the graph starting from a given vertex.
-         *
-         * @param graph The graph.
-         * @param vertex The starting vertex for DFS.
-         * @param visited A vector to keep track of visited vertices.
-         * @param parent A vector to keep track of the parents of each vertex.
-         * @param start The original starting vertex for cycle detection.
-         * @return A string representing the cycle or an empty string if no cycle is found.
-         */
-        static string dfs_cycle(Graph& graph, size_t vertex, vector<bool>& visited, vector<size_t>& parent, size_t start);
-        
+     
+        * @param graph The graph to be checked.
+        * @param vertex The current vertex that explored in the DFS.
+        * @param visited A vector that tracks if each vertex already visited to avoid revisiting.
+        * @param recStack A vector that tracks "active" vertices in the current recursion to find cycles.
+        * @param parent A vector that stores the parent of each vertex, for building the circle (if found).
+        * @param isDirected Boolean that give an undication if the graph is directed; that affects finding of back edges.
+        * @return A string representing the cycle, or an empty string if no cycle is found.
+        */
+        static string dfs_cycle(Graph& graph, size_t vertex, vector<bool>& visited, vector<bool>& recStack, vector<size_t>& parent, bool isDirected);
+            
 
         /**
          * @brief This auxiliary function checks if a graph is bipartite using DFS by trying to color it with 2-colors.

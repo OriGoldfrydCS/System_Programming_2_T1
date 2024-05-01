@@ -12,7 +12,7 @@ namespace ariel {
     /**
      * @brief A default constructor for the Graph class.
      */
-    Graph::Graph() : numVertices(0), numEdges(0), isDirected(false) {}
+    Graph::Graph() : _numVertices(0), _numEdges(0), _isDirected(false) {}
 
 
     /**
@@ -28,25 +28,25 @@ namespace ariel {
             throw invalid_argument("Invalid graph: The graph matrix is empty");
         }
 
-        numVertices = matrix.size();            // A variable to store how many vertices have in the  graph
-        numEdges = 0;                           // A variable to store how many edges have in the  graph
+        _numVertices = matrix.size();            // A variable to store how many vertices have in the  graph
+        _numEdges = 0;                           // A variable to store how many edges have in the  graph
 
         // Check if the matrix is square
         for (size_t i = 0; i < matrix.size(); i++)
         {
-        if (matrix[i].size() != numVertices)
+        if (matrix[i].size() != _numVertices)
             {
                 throw invalid_argument("Invalid graph: The graph is not a square matrix");
             }
         }
         
-        adjacencyMatrix = matrix;
+        _adjacencyMatrix = matrix;
 
         // Check if the graph is directed or not
-        isDirected = checkDirected();
+        _isDirected = checkDirected();
 
         // Count the number of edges based on graph type
-        numEdges = countEdges();
+        _numEdges = countEdges();
     }
         
 
@@ -56,7 +56,7 @@ namespace ariel {
     // NOLINTNEXTLINE
     void Graph::printGraph() const
     {
-        cout << "Graph with " << numVertices << " vertices and " << numEdges << " edges" << endl;
+        cout << "Graph with " << _numVertices << " vertices and " << _numEdges << " edges" << endl;
     }
 
 
@@ -64,10 +64,9 @@ namespace ariel {
      * @brief This method returns the number of vertices in the graph.
      * @return The number of vertices.
      */
-    // NOLINTNEXTLINE
     size_t Graph::getNumVertices() const
     {
-        return numVertices;
+        return _numVertices;
     }
 
 
@@ -75,10 +74,9 @@ namespace ariel {
      * @brief This method returns the number of edges in the graph.
      * @return The number of edges.
      */
-    // NOLINTNEXTLINE
     size_t Graph::getNumEdges() const
     {
-        return numEdges;
+        return _numEdges;
     }
 
 
@@ -88,7 +86,7 @@ namespace ariel {
      */
     bool Graph::isGraphDirected() const
     {
-        return isDirected;
+        return _isDirected;
     }
 
 
@@ -99,7 +97,7 @@ namespace ariel {
      */
     vector<vector<int>>& Graph::getAdjacencyMatrix() 
     {
-        return adjacencyMatrix;
+        return _adjacencyMatrix;
     }
 
 
@@ -113,11 +111,11 @@ namespace ariel {
     */
     bool Graph::checkDirected()
     {
-        for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++)
+        for (size_t vertex_v = 0; vertex_v < _numVertices; vertex_v++)
         {
-            for (size_t vertex_u = 0; vertex_u < numVertices; vertex_u++)
+            for (size_t vertex_u = 0; vertex_u < _numVertices; vertex_u++)
             {
-                if (adjacencyMatrix[vertex_v][vertex_u] != adjacencyMatrix[vertex_u][vertex_v])
+                if (_adjacencyMatrix[vertex_v][vertex_u] != _adjacencyMatrix[vertex_u][vertex_v])
                 {
                     return true;
                 }
@@ -134,14 +132,14 @@ namespace ariel {
     size_t Graph::countEdges()
     {
         size_t count = 0;
-        if (isDirected)
+        if (_isDirected)
         {
             // Count edges for directed graph
-            for (size_t i = 0; i < numVertices; i++)
+            for (size_t i = 0; i < _numVertices; i++)
             {
-                for (size_t j = 0; j < numVertices; j++)
+                for (size_t j = 0; j < _numVertices; j++)
                 {
-                    if (adjacencyMatrix[i][j] != 0)
+                    if (_adjacencyMatrix[i][j] != 0)
                     {
                         count++;
                     }
@@ -151,11 +149,11 @@ namespace ariel {
         else
         {
             // Count edges for undirected graph
-            for (size_t i = 0; i < numVertices; i++)
+            for (size_t i = 0; i < _numVertices; i++)
             {
-                for (size_t j = i; j < numVertices; j++)
+                for (size_t j = i; j < _numVertices; j++)
                 {
-                    if (adjacencyMatrix[i][j] != 0)
+                    if (_adjacencyMatrix[i][j] != 0)
                     {
                         count++;
                     }
