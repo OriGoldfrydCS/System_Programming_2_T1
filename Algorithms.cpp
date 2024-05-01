@@ -139,23 +139,28 @@ namespace ariel {
      */
     string Algorithms::isContainsCycle(Graph& graph) 
     {
-        size_t numVertices = graph.getNumVertices();
-        vector<bool> visited(numVertices, false);
-        vector<bool> recStack(numVertices, false);
-        vector<size_t> parent(numVertices, 0);        
+        size_t numVertices = graph.getNumVertices();        // A variable to store the number of vertices in the graph
+        vector<bool> visited(numVertices, false);           // A vector to track if each vertex visited
+        vector<bool> recStack(numVertices, false);          // A vector to track if a vertex is currently in the recursion (used by dfs_cycle)
+        vector<size_t> parent(numVertices, 0);              // A vector to track the parent of each vertex, used to build the cycle (if exists)
 
-            for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
+        // Iterate over all unvisited vertices by DFS 
+        for (size_t vertex_v = 0; vertex_v < numVertices; vertex_v++) 
+        {
+            if (!visited[vertex_v]) 
             {
-                if (!visited[vertex_v]) 
+                string cycle = dfs_cycle(graph, vertex_v, visited, recStack, parent, graph.isGraphDirected());
+                
+                // If a cyrcle found, return it
+                if (!cycle.empty()) 
                 {
-                    string cycle = dfs_cycle(graph, vertex_v, visited, recStack, parent, graph.isGraphDirected());
-                    if (!cycle.empty()) 
-                    {
-                        return cycle;
-                    }
-                }
+                    return cycle;
+                 }
             }
-            return "0"; 
+        }
+
+        // If a cyrcle wasn't found, return "0"
+        return "0"; 
     }
     
 
