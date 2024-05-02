@@ -53,7 +53,6 @@ namespace ariel {
     /**
      * @brief This method prints the number of vertices and edges in the graph.
      */
-    // NOLINTNEXTLINE
     void Graph::printGraph() const
     {
         cout << "Graph with " << _numVertices << " vertices and " << _numEdges << " edges" << endl;
