@@ -16,7 +16,7 @@ class Algorithms {
     public:
 
         /**
-         * @brief This method checks if all vertices in a given graph are reachable from the vertex with index 0 by using BFS algorithm.
+         * @brief This method checks if all vertices in a given graph reachable from the vertex with index 0 by using BFS algorithm.
          *
          * @param graph The graph to check.
          * @return true if all vertices are reachable; otherwise, false.

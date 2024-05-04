@@ -18,7 +18,7 @@ namespace ariel {
     /**
      * @brief This method loads a graph from an adjacency matrix.
      * @param matrix The adjacency matrix representing the graph.
-     * @throws If the matrix is empty or not square throw invalid_argument exception
+     * @throws If the matrix is empty or not square throw invalid_argument exception.
      */
     void Graph::loadGraph(vector<vector<int>>& matrix) 
     {
@@ -125,7 +125,7 @@ namespace ariel {
 
 
     /**
-    * @brief This auxiliary function countd the number of edges in a graph.
+    * @brief This auxiliary function count the number of edges in a graph.
     * @return number of edges.
     */
     size_t Graph::countEdges()

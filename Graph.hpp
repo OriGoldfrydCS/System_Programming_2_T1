@@ -50,7 +50,7 @@ namespace ariel {
         /**
          * @brief This method loads a graph from an adjacency matrix.
          * @param matrix The adjacency matrix representing the graph.
-         * @throws If the matrix is empty or not square throw invalid_argument exception
+         * @throws If the matrix is empty or not square throw invalid_argument exception.
          */
         void loadGraph(vector<vector<int>>& matrix);
 
