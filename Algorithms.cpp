@@ -29,7 +29,7 @@ namespace ariel {
             return true;
         }
 
-        vector<bool> visited(numVertices, false);       // Initialize a vector with numVertices elements and sets each of them to false
+        vector<bool> visited(numVertices, false);          // Initialize a vector with numVertices elements and sets each of them to false
 
         vector<size_t> parent(numVertices, INT_MAX);       // Create a dummy parent vector (added to make bfs function to be used for finding shortest path as well)
         bfs(graph, 0, visited, parent, INT_MAX, false);    // Perform BFS starting from vertex 0 (INT_MAX and "false" are dummy variables, from the reason mentioned above)
@@ -64,7 +64,8 @@ namespace ariel {
         }
 
         // Perform BFS from each vertex
-        for (size_t startVertex = 0; startVertex < numVertices; startVertex++) {
+        for (size_t startVertex = 0; startVertex < numVertices; startVertex++) 
+        {
             vector<bool> visited(numVertices, false);           // Initiate a vector to keep tracking the visited vertices
             vector<size_t> parent(numVertices, INT_MAX);        // Create a dummy parent vector (added to make bfs function to be used for finding shortest path as well)
             bfs(graph, startVertex, visited, parent, INT_MAX, false);  // INT_MAX and  "false" are dummy variables, from the reason mentioned above
@@ -115,12 +116,12 @@ namespace ariel {
         Graph subgraph;
         extractSubgraph(graph, start, end, subgraph);
 
-        // Check if the graph is unweighted and has negative edges to choose the relevant algorithm
+        // Check if the graph is unweighted and has negative edges to choose the relevant algorithm to run
         pair<bool, bool> graphType = checkGraphType(graph);
         bool isUnweighted = graphType.first;
         bool hasNegativeEdges = graphType.second;
 
-        // Choose the algorithm based on the graph type
+        // Choose the algorithm based on the graph's type
         if (isUnweighted) 
         {
             return bfsShortestPath(subgraph, start, end);
@@ -247,6 +248,7 @@ namespace ariel {
                 if (vertex_u != vertex_v && graph.getAdjacencyMatrix()[vertex_u][vertex_v] != 0 && graph.getAdjacencyMatrix()[vertex_v][vertex_u] != 0 &&
                     graph.getAdjacencyMatrix()[vertex_u][vertex_v] != graph.getAdjacencyMatrix()[vertex_v][vertex_u]) 
                     {
+                    
                     int weight = graph.getAdjacencyMatrix()[vertex_u][vertex_v] + graph.getAdjacencyMatrix()[vertex_v][vertex_u];
                     if (weight < 0) 
                     {
@@ -284,7 +286,7 @@ namespace ariel {
      */
     void Algorithms::bfs(Graph& graph, size_t startVertex, vector<bool>& visited, vector<size_t>& parent, size_t end, bool reverse = false) 
     {
-        queue<size_t> queue;
+        queue<size_t> queue;                    // Initiate queue to track the vertices in the graph
         visited[startVertex] = true;            // Mark the startVertex as visited
         queue.push(startVertex);                // Add the startVertex to the queue 
 
@@ -292,10 +294,10 @@ namespace ariel {
         // According to the BFS algorithm we will continue the process until there are no more vertices to explore
         while (!queue.empty()) 
         {
-            size_t currentVertex = queue.front();                         // Store the front vertex and remove it from the queue
+            size_t currentVertex = queue.front();       // Store the front vertex and remove it from the queue
             queue.pop();
 
-            // This condition is  only used for bfsShortestPath
+            // NOTE: This condition is only used for bfsShortestPath
             if (currentVertex == end) 
             {
                 break;
@@ -304,6 +306,9 @@ namespace ariel {
             size_t numVertices = graph.getNumVertices();
             for (size_t i = 0; i < numVertices; i++)           // Iterate over all vertices in the graph to find all neighbors vertices
             {
+
+                // NOTE: This variables is more relevant for the shortest path's (to extract the sub-graph)
+                // In other cases, reverse is equal to "false" defaultly
                 size_t neighbour = reverse ? i : currentVertex;
                 size_t target = reverse ? currentVertex : i;
 
@@ -574,7 +579,8 @@ namespace ariel {
      * @param visited A vector indicating whether each vertex has been visited.
      * @return The index of the vertex with the smallest distance that has not been visited.
      */
-    size_t Algorithms::findMinDistanceVertex(vector<int>& distance, vector<bool>& visited) {
+    size_t Algorithms::findMinDistanceVertex(vector<int>& distance, vector<bool>& visited) 
+    {
         size_t minVertex = INT_MAX;
         int minDistance = INT_MAX;          // We will start with the largest possible distance
 
@@ -601,7 +607,8 @@ namespace ariel {
      * @param parent The vector containing each vertex's parent in the path.
      * @return A string representing the path or an empty string if no path exists.
      */
-    string Algorithms::buildPath(size_t start, size_t end, vector<size_t>& parent) {
+    string Algorithms::buildPath(size_t start, size_t end, vector<size_t>& parent) 
+    {
         string path;
         size_t current = end;
 
