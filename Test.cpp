@@ -9,6 +9,7 @@
 using namespace std;
 using namespace ariel;
 
+
 Graph g;        // Initiate an empty instance of graph to be used in the following tests
 
 /*********************************************/

@@ -8,6 +8,7 @@ using namespace std;
 
 namespace ariel {
 
+
     /**
      * @brief A default constructor for the Graph class.
      */

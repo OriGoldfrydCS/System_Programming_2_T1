@@ -10,6 +10,7 @@ using namespace std;
 
 namespace ariel {
 
+
 class Algorithms {
 
     public:

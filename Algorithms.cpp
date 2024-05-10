@@ -13,6 +13,7 @@ using namespace std;
 
 namespace ariel {
     
+    
     /**
      * @brief This method checks if all vertices in a given graph reachable from the vertex with index 0 by using BFS algorithm.
      *

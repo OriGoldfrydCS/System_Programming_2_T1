@@ -9,6 +9,7 @@ using namespace std;
 
 namespace ariel {
 
+
     /**
      * @This class represents a graph by using an adjacency matrix.
      */
