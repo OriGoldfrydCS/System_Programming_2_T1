@@ -1,4 +1,3 @@
-// ID: 200661775
 // Email: origoldbsc@gmail.com
 
 #include "doctest.h"
@@ -387,6 +386,35 @@ TEST_CASE("Test shortestPath (Dijkstra): Invalid vertex"){
         CHECK(ariel::Algorithms::shortestPath(g, 1, 1) == "No path exists between a vertex and itself");
 }
 
+
+TEST_CASE("Test shortestPath (BF): Graph with shortest path + negative cycle not part of the shortest path"){
+    vector<vector<int>> matrix = {
+            {0, -3, 0, 0, 0, 0, 0, -2}, 
+            {0, 0, -6, 0, 0, 0, 0, 0}, 
+            {0, 0, 0, 0, 0, 0, 0, -9}, 
+            {0, 0, 0, 0, 0, 0, -1, 0}, 
+            {0, 0, 0, 0, 0, -1, 0, 0}, 
+            {0, 0, 0, -1, 0, 0, 0, 0}, 
+            {0, 0, 0, 0, -1, 0, 0, 0}, 
+            {0, 0, 0, -1, 0, 0, 0, 0}};
+        g.loadGraph(matrix);
+        CHECK(ariel::Algorithms::shortestPath(g, 0, 7) == "0->1->2->7");
+}
+
+TEST_CASE("Test shortestPath (BF): Graph with shortest path + negative cycle that part of the shortest path"){
+    vector<vector<int>> matrix = {
+            {0, -3, 0, 0, 0, 0, 0, -2}, 
+            {0, 0, -6, 0, 0, 0, 0, 0}, 
+            {0, 0, 0, 0, 0, 0, 0, -9}, 
+            {0, 0, 0, 0, 0, 0, -1, -2}, 
+            {0, 0, 0, 0, 0, -1, 0, 0}, 
+            {0, 0, 0, -1, 0, 0, 0, 0}, 
+            {0, 0, 0, 0, -1, 0, 0, 0}, 
+            {0, 0, 0, -1, 0, 0, 0, 0}};
+        g.loadGraph(matrix);
+        CHECK(ariel::Algorithms::shortestPath(g, 0, 7) == "Graph contains a negative cycle");
+}
+
 // isContainsCycle tests
 
 TEST_CASE("Test isContainsCycle: Single vertex graph") {
@@ -439,7 +467,7 @@ TEST_CASE("Test isContainsCycle: Graph with self-loop") {
 }
 
 
-TEST_CASE("Test isContainsCycl: Large graph with long cycle") {
+TEST_CASE("Test isContainsCycle: Large graph with long cycle") {
 
     vector<vector<int>> matrix = {
         {0, 1, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -457,6 +485,19 @@ TEST_CASE("Test isContainsCycl: Large graph with long cycle") {
     CHECK(((ariel::Algorithms::isContainsCycle(g) == "0->1->2->3->4->5->6->7->8->9->0") || (ariel::Algorithms::isContainsCycle(g) == "9->0->1->2->3->4->5->6->7->8->9")));
 }
 
+TEST_CASE("Test isContainsCycle: Negative cycle") {
+
+    vector<vector<int>> matrix = {
+        {0, -1, 0, 0, 0, 1}, 
+        {0, 0, 0, 0, -1, 0}, 
+        {0, 1, 0, 1, 0, 0}, 
+        {0, 0, 0, 0, 1, 0}, 
+        {-1, 0, 0, 0, 0, 1}, 
+        {0, 0, 0, 0, 0, 0}};
+    g.loadGraph(matrix);
+    CHECK(((ariel::Algorithms::isContainsCycle(g) == "0->1->4->0") || (ariel::Algorithms::isContainsCycle(g) == "1->4->0->1")
+    || (ariel::Algorithms::isContainsCycle(g) == "4->0->1->4")));
+}
 
 // isBipartite tests
 

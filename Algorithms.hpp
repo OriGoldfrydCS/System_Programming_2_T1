@@ -1,4 +1,3 @@
-// ID: 200661775
 // Email: origoldbsc@gmail.com
 
 #ifndef ALGORITHMS_H
@@ -37,7 +36,7 @@ class Algorithms {
          * @brief This method finds the shortest path between two vertices in a given graph.
          *
          * @note: The method uses a strategy to choose the appropriate algorithm based on the properties of the graph (weighted/unweighted, containts negative edges or not).
-         * It uses BFS for unweighted graphs (time complexity: O(|V|*|E|)), Bellman-Ford for graphs with negative weights (time complexity: O(|V|*|E|)), 
+         * It uses BFS for unweighted graphs (time complexity: O(|V|+|E|)), Bellman-Ford for graphs with negative weights (time complexity: O(|V|*|E|)), 
          * or Dijkstra's for non-negative weighted graphs (time complexity: O(|V|*|V|)), and thus does not waste resources.
          *
          * @param graph The graph.
@@ -93,7 +92,24 @@ class Algorithms {
          * @param parent A vector to track the parent of the vertices (extents the classic BFS for finding the shortest path).
          * @param parent A vector to track the parent of each vertex, used for rebuilding paths (extents the classic BFS for finding the shortest path).
          */
-        static void bfs(Graph& graph, size_t startVertex, vector<bool>& visited, vector<size_t>& parent, size_t end);
+        static void bfs(Graph& graph, size_t startVertex, vector<bool>& visited, vector<size_t>& parent, size_t end, bool reverse);
+
+
+        /**
+         * @brief This auxiliary function extracts a subgraph from the given graph, 
+         * containing only nodes and edges that form possible paths from the start to the end vertex.
+         *
+         * The function uses two breadth-first searches (BFS):
+         * 1. A forward BFS from the start vertex to identify all nodes reachable from the start.
+         * 2. A reverse BFS from the end vertex to identify all nodes that can lead to the end.
+         * The intersection of these nodes create the set of relevant nodes in the subgraph.
+         *
+         * @param graph The original graph from which the subgraph is to be extracted.
+         * @param start The starting vertex for potential paths.
+         * @param end The ending vertex for potential paths.
+         * @param subgraph A Graph that will be contained the resulting subgraph.
+         */
+        static void extractSubgraph(Graph& graph, size_t start, size_t end, Graph& subgraph);
 
 
         /**
@@ -261,8 +277,9 @@ class Algorithms {
          * @return A string representing the negative cycle.
          */
         static string buildNegativeCycle(Graph& graph, size_t vertex_v, vector<size_t>& parent);
-    };
 
+    };
+    
 }
 
 #endif
